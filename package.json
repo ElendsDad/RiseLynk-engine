@@ -1,0 +1,42 @@
+{
+  "name": "site-engine",
+  "version": "0.17.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "Maxwell Industries internal config-driven static-site engine. A site is a site.config.ts plus assets plus a pinned engine version.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "hydrate": "node tools/hydrate.mjs",
+    "lint:config": "node tools/lint-config.mjs",
+    "hydrate:demo": "node tools/hydrate.mjs examples/elevator-demo/publish-profile.snapshot.json dist/hydrated",
+    "hydrate:bundle": "node tools/hydrate.mjs \"examples/elevator-demo/v0.4.0-bundle/summit-vertical/2026-07-10T183000Z/snapshot.json\" dist/hydrated",
+    "test:hydrate": "node tools/hydrate.test.mjs",
+    "test:contact": "node tools/contact-intake.test.mjs",
+    "test:blog": "node tools/blog-check.test.mjs",
+    "test:seo": "node tools/seo-jsonld.test.mjs",
+    "test:trust": "node tools/trust.test.mjs",
+    "test:theme": "node tools/theme-tokens.test.mjs",
+    "test:celebrate": "node tools/celebrate.test.mjs",
+    "build:hydrated": "node tools/hydrate.buildcheck.mjs",
+    "build:hydrated:bundle": "node tools/hydrate.buildcheck.mjs \"examples/elevator-demo/v0.4.0-bundle/summit-vertical/2026-07-10T183000Z/snapshot.json\""
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "dependencies": {
+    "next": "^15.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "resend": "^4.0.1",
+    "stripe": "^17.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "typescript": "^5.7.3"
+  }
+}

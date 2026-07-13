@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "0.3.0",
+  "tenantSlug": "summit-vertical",
+  "generatedAt": "2026-07-10T00:00:00Z",
+  "approvedAt": "2026-07-10T18:30:00Z",
+  "approvedBy": "office-user-demo-0001",
+  "identity": {
+    "name": "Summit Vertical Services",
+    "tagline": "Elevator and escalator service for mixed-manufacturer routes across the Puget Sound region.",
+    "phone": "(555) 018-7700",
+    "email": "service@summit-vertical.example",
+    "region": "WA",
+    "locality": "Demo City",
+    "serviceArea": "Serving King, Pierce, and Kitsap counties",
+    "hours": "Mon to Fri 7am to 4pm, on-call after hours"
+  },
+  "credentials": {
+    "licenseNumber": { "value": "SUMMITVS-000-DEMO", "attested": true },
+    "registryUrl": "https://secure.lni.wa.gov/verify/",
+    "bonded": { "value": true, "attested": false },
+    "insured": { "value": true, "attested": true },
+    "yearsInBusiness": { "value": 18, "attested": true }
+  },
+  "fleet": {
+    "manufacturers": ["Otis", "KONE", "Schindler", "TK Elevator"],
+    "equipClasses": ["traction", "hydraulic"],
+    "statesServed": ["WA"],
+    "hasModernization": true,
+    "hasPeriodicTesting": false
+  },
+  "services": {
+    "fullMaintenance": true,
+    "oilLube": false
+  },
+  "wiring": {
+    "intakeUrl": "https://portal.summit-vertical.example/api/intake",
+    "portalUrl": "https://portal.summit-vertical.example/",
+    "dispatchRouted": false
+  },
+  "assets": {
+    "modProjects": []
+  },
+  "brand": {
+    "primary": "#12324a",
+    "accent": "#f2a541",
+    "font": "sans",
+    "logoRef": null,
+    "domain": "https://summit-vertical.example"
+  }
+}

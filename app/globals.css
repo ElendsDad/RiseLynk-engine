@@ -1,0 +1,1081 @@
+/* Design system. Everything themes off the CSS variables set from site.config brand colors. */
+
+:root {
+  --color-primary: #1f3a5f;
+  --color-accent: #e8a13a;
+  --color-bg: #ffffff;
+  --color-text: #16181d;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --muted: #5b6573;
+  --line: #e6e8ec;
+  --surface: #f6f8fa;
+  --radius: 12px;
+  --container: 1100px;
+  --space: clamp(3rem, 7vw, 5.5rem);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation: none !important; transition: none !important; }
+  /* R5 craft: settle the machine-room surface and the scroll narrative to their static
+     states. The one-light fixed backdrop drops its fixed attachment (no scroll jank), and
+     every narrative scene is shown in the stacked timeline (no pinned motion). */
+  [data-craft~="one-light"]:not([data-theme]) body { background-attachment: scroll; }
+  /* The dual-theme surface drops its fixed attachment too (same no-scroll-jank reason). */
+  :root[data-theme] body { background-attachment: scroll; }
+  .scene { opacity: 1 !important; transform: none !important; }
+}
+
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--color-primary); }
+
+h1, h2, h3 { line-height: 1.15; margin: 0 0 0.5em; color: var(--color-text); }
+h1 { font-size: clamp(2rem, 5vw, 3.25rem); letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.5rem, 3.5vw, 2.25rem); letter-spacing: -0.01em; }
+h3 { font-size: 1.2rem; }
+p { margin: 0 0 1rem; }
+
+.container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: 1.25rem; }
+.section { padding-block: var(--space); }
+.section--surface { background: var(--surface); }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.8rem; font-weight: 700; color: var(--color-accent); margin-bottom: 0.5rem; }
+.lead { font-size: 1.15rem; color: var(--muted); max-width: 60ch; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.85rem 1.4rem; border-radius: var(--radius);
+  font-weight: 700; text-decoration: none; cursor: pointer;
+  border: 2px solid transparent; transition: transform 0.06s ease, opacity 0.2s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn--primary { background: var(--color-primary); color: #fff; }
+.btn--accent { background: var(--color-accent); color: #16181d; }
+.btn--ghost { background: transparent; color: var(--color-primary); border-color: var(--line); }
+.btn:hover { opacity: 0.92; }
+.btn:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--color-accent); outline-offset: 2px;
+}
+
+/* Header / nav */
+.site-header { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--color-bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.site-header__row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 0.85rem; }
+.brand-mark { display: flex; align-items: center; gap: 0.6rem; font-weight: 800; color: var(--color-primary); text-decoration: none; font-size: 1.15rem; }
+.brand-mark img { height: 36px; width: auto; }
+.nav { display: flex; gap: 1.4rem; align-items: center; }
+.nav a { text-decoration: none; color: var(--color-text); font-weight: 600; }
+.nav a:hover { color: var(--color-primary); }
+.nav__cta { margin-left: 0.5rem; }
+@media (max-width: 720px) {
+  .nav { gap: 0.9rem; font-size: 0.9rem; flex-wrap: wrap; justify-content: flex-end; }
+  .nav__cta { display: none; }
+}
+
+/* Hero */
+.hero { position: relative; color: #fff; background: var(--color-primary); }
+.hero--image { background-size: cover; background-position: center; }
+.hero__overlay { background: linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 78%, transparent), color-mix(in srgb, var(--color-primary) 92%, transparent)); }
+.hero__inner { padding-block: clamp(4rem, 12vw, 8rem); max-width: 46rem; }
+.hero h1 { color: #fff; }
+.hero .lead { color: rgba(255,255,255,0.9); }
+.hero__cta { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1.5rem; }
+
+/* Grid of cards (services) */
+.grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.card { background: var(--color-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.5rem; }
+.card .icon { font-size: 1.6rem; }
+.card h3 { margin-top: 0.6rem; }
+.card p { color: var(--muted); margin: 0; }
+
+/* About */
+.about { display: grid; gap: 2rem; grid-template-columns: 1fr; align-items: center; }
+@media (min-width: 820px) { .about { grid-template-columns: 1.1fr 0.9fr; } }
+
+/* Gallery */
+.gallery { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.gallery img { border-radius: var(--radius); aspect-ratio: 4 / 3; object-fit: cover; width: 100%; }
+
+/* Testimonials */
+.quotes { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.quote { background: var(--color-bg); border: 1px solid var(--line); border-left: 4px solid var(--color-accent); border-radius: var(--radius); padding: 1.5rem; }
+.quote blockquote { margin: 0 0 0.75rem; font-size: 1.05rem; }
+.quote cite { font-style: normal; font-weight: 700; }
+.quote span { color: var(--muted); }
+
+/* CTA banner */
+.cta-banner { background: var(--color-primary); color: #fff; border-radius: var(--radius); padding: clamp(2rem, 5vw, 3rem); text-align: center; }
+.cta-banner h2 { color: #fff; }
+
+/* Contact */
+.contact { display: grid; gap: 2rem; grid-template-columns: 1fr; }
+@media (min-width: 820px) { .contact { grid-template-columns: 1fr 1fr; } }
+.contact__details p { margin: 0.35rem 0; }
+.contact__details a { font-weight: 600; }
+.field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
+.field label { font-weight: 600; font-size: 0.92rem; }
+.field input, .field textarea { font: inherit; padding: 0.7rem 0.85rem; border: 1px solid var(--line); border-radius: 10px; background: var(--color-bg); color: var(--color-text); }
+.form__status { margin-top: 0.5rem; font-weight: 600; }
+.form__status--ok { color: #1a7f4b; }
+.form__status--err { color: #b42318; }
+.map { width: 100%; border: 0; border-radius: var(--radius); min-height: 280px; }
+
+/* Footer */
+.site-footer { border-top: 1px solid var(--line); background: var(--surface); padding-block: 2.5rem; margin-top: 2rem; }
+.site-footer__row { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; color: var(--muted); font-size: 0.92rem; }
+.site-footer a { color: var(--color-text); text-decoration: none; }
+.site-footer a:hover { color: var(--color-primary); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+/* Honeypot anti-spam trap (feature-backlog #4): moved off-screen and out of the layout so
+   no human sees it, while remaining a real, fillable field a form bot will populate. Not
+   display:none (some bots skip hidden fields); aria-hidden + tabIndex on the markup keep it
+   out of the accessibility tree and tab order. */
+.hp-field { position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.skip-link { position: absolute; left: -999px; top: 0; background: #fff; color: var(--color-primary); padding: 0.6rem 1rem; z-index: 100; }
+.skip-link:focus { left: 0.5rem; top: 0.5rem; }
+
+/* Lead form (lead-gen) */
+.leadform { display: grid; gap: 1rem; grid-template-columns: 1fr; max-width: 680px; }
+@media (min-width: 640px) { .leadform { grid-template-columns: 1fr 1fr; } }
+.leadform .field { margin-bottom: 0; }
+.field--full { grid-column: 1 / -1; }
+.field select { font: inherit; padding: 0.7rem 0.85rem; border: 1px solid var(--line); border-radius: 10px; background: var(--color-bg); color: var(--color-text); }
+
+/* Booking embed (lead-gen) */
+.booking-embed { width: 100%; min-height: 640px; border: 1px solid var(--line); border-radius: var(--radius); }
+
+/* Products (simple-commerce) */
+.products { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.product { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--color-bg); }
+.product > img { aspect-ratio: 4 / 3; object-fit: cover; width: 100%; }
+.product__body { display: flex; flex-direction: column; gap: 0.5rem; padding: 1.25rem; flex: 1; }
+.product__body p { color: var(--muted); margin: 0; flex: 1; }
+.product__foot { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.75rem; }
+.product__price { font-weight: 800; font-size: 1.2rem; color: var(--color-primary); }
+
+/* ============================================================================
+   v0.2.0 - elevator-contractor archetype, GEO pack, optional sections, blog.
+   Everything below themes off the same two brand colors as everything above.
+   ============================================================================ */
+
+/* Contractor services */
+.svc-card { display: flex; flex-direction: column; }
+.svc-card__points { margin: 0.75rem 0 0; padding-left: 1.1rem; color: var(--muted); }
+.svc-card__points li { margin-bottom: 0.3rem; }
+.svc-card__link { margin-top: auto; padding-top: 0.75rem; font-weight: 700; }
+
+/* Trust-artifact bar */
+.trustbar { background: var(--color-primary); color: #fff; }
+.trustbar__row { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; padding-block: 0.9rem; }
+.trustbar__facts { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin: 0; padding: 0; list-style: none; flex: 1; }
+.trustbar__facts li { display: flex; flex-direction: column; }
+.trustbar__label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.72); }
+.trustbar__value { font-weight: 700; }
+.trustbar__value--link { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.trustbar__verify { color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+
+/* Emergency call bar (persistent, mobile-first) */
+.callbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; background: var(--color-accent); color: #16181d; border-top: 2px solid rgba(0,0,0,0.15); box-shadow: 0 -6px 20px rgba(0,0,0,0.14); }
+.callbar__spacer { height: 88px; }
+.callbar__row { display: flex; align-items: center; gap: 1rem; justify-content: space-between; padding-block: 0.7rem; }
+.callbar__text { display: flex; flex-direction: column; }
+.callbar__label { font-weight: 800; line-height: 1.3; }
+.callbar__note { font-size: 0.85rem; opacity: 0.8; }
+.callbar__btn { display: inline-flex; align-items: center; white-space: nowrap; background: #16181d; color: #fff; font-weight: 800; padding: 0.7rem 1.15rem; border-radius: var(--radius); text-decoration: none; }
+.callbar__btn:hover { opacity: 0.92; }
+@media (max-width: 560px) {
+  .callbar__row { flex-direction: column; align-items: stretch; gap: 0.5rem; text-align: center; }
+  .callbar__btn { justify-content: center; }
+  .callbar__spacer { height: 128px; }
+}
+
+/* Informational cookie notice (config-gated; themes off the two brand colors) */
+.cookie-bar {
+  position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 70;
+  max-width: 880px; margin-inline: auto;
+  display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+  background: var(--color-bg); color: var(--color-text);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+  padding: 0.9rem 1.1rem;
+}
+.cookie-bar__msg { flex: 1 1 320px; min-width: 240px; margin: 0; color: var(--muted); font-size: 0.92rem; }
+.cookie-bar__msg a { color: var(--color-primary); font-weight: 600; }
+.cookie-bar__btn { flex: 0 0 auto; padding: 0.6rem 1.2rem; }
+@media (max-width: 560px) {
+  .cookie-bar { flex-direction: column; align-items: stretch; text-align: center; }
+}
+
+/* Customer-portal door */
+.portal-door { display: grid; gap: 2rem; grid-template-columns: 1fr; align-items: center; }
+@media (min-width: 820px) { .portal-door { grid-template-columns: 1fr 1fr; } }
+.portal-door__shot img { border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 12px 30px -14px rgba(0,0,0,0.3); }
+
+/* Answer-first summary block (GEO) */
+.summary { margin-top: 1.5rem; background: color-mix(in srgb, var(--color-accent) 8%, var(--color-bg)); border: 1px solid var(--line); border-top: 3px solid var(--color-accent); border-radius: var(--radius); padding: 1.4rem 1.6rem; }
+.summary__label { display: block; font-family: inherit; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: var(--color-accent); margin-bottom: 0.6rem; }
+.summary p { color: var(--muted); }
+.summary__points { margin: 0.5rem 0 0; padding-left: 1.3rem; color: var(--muted); }
+.summary__points li { margin-bottom: 0.4rem; }
+.summary__points li strong { color: var(--color-text); }
+
+/* FAQ (GEO) */
+.faq__qa { border-top: 1px solid var(--line); padding: 1.15rem 0; }
+.faq__qa:last-child { border-bottom: 1px solid var(--line); }
+.faq__q { font-weight: 700; color: var(--color-primary); margin: 0 0 0.4rem; font-size: 1.05rem; }
+.faq__a { margin: 0; color: var(--muted); }
+
+/* Careers (optional) */
+.careers__reality { display: grid; gap: 1.5rem; grid-template-columns: 1fr; margin-top: 2rem; }
+@media (min-width: 720px) { .careers__reality { grid-template-columns: 1fr 1fr; } }
+.careers__reality h3 { color: var(--color-primary); }
+.careers__reality p { color: var(--muted); margin: 0; }
+
+/* Records-transparency (optional) */
+.records { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 2rem; }
+.records__item { background: var(--color-bg); border: 1px solid var(--line); border-left: 4px solid var(--color-primary); border-radius: var(--radius); padding: 1.4rem; }
+.records__item h3 { margin-top: 0; }
+.records__item p { color: var(--muted); margin: 0; }
+
+/* Modernization before/after gallery (optional) */
+.mods { display: grid; gap: 1.5rem; }
+.mod { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--color-bg); }
+.mod__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--line); }
+.mod__pair figure { margin: 0; position: relative; }
+.mod__pair img { aspect-ratio: 4 / 3; object-fit: cover; width: 100%; }
+.mod__pair figcaption { position: absolute; top: 0.5rem; left: 0.5rem; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 6px; }
+.mod__meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; padding: 1rem 1.25rem; color: var(--muted); font-size: 0.92rem; }
+.mod__meta strong { color: var(--color-text); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.08em; margin-right: 0.35rem; }
+.mod__caption { margin: 0; padding: 0 1.25rem 1.25rem; color: var(--muted); }
+
+/* Blog */
+.bloglist { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.blogcard { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.5rem; background: var(--color-bg); }
+.blogcard h2 { font-size: 1.35rem; margin-bottom: 0.5rem; }
+.blogcard h2 a { color: var(--color-text); text-decoration: none; }
+.blogcard h2 a:hover { color: var(--color-primary); }
+.blogcard p { color: var(--muted); }
+.blogcard__more { font-weight: 700; }
+
+/* Article */
+.article { max-width: 760px; }
+.article__meta { color: var(--muted); font-size: 0.9rem; }
+.article__lede { font-size: 1.25rem; color: var(--color-text); }
+.draftbadge { background: color-mix(in srgb, var(--color-accent) 16%, var(--color-bg)); border: 1px solid var(--color-accent); border-radius: 10px; padding: 0.6rem 0.9rem; font-weight: 700; font-size: 0.9rem; }
+/* Neutralize the section/container wrappers of Summary/Faq when reused inside an article,
+   so nesting does not double the padding or shrink the measure. */
+.article .section { padding-block: 0.5rem 0; }
+.article .container { padding-inline: 0; max-width: none; width: 100%; }
+.prose h2 { margin-top: 2rem; }
+.prose h3 { margin-top: 1.5rem; color: var(--color-primary); }
+.prose p { color: var(--muted); }
+.prose ul { color: var(--muted); padding-left: 1.3rem; }
+.prose li { margin-bottom: 0.4rem; }
+
+/* ============================================================================
+   R5 - design-system structural craft (unification program section 2.9).
+   Brand-neutral, config-gated STRUCTURE harvested from riselynk.com's machine-room
+   landing (spec RiseLynk/docs/specs/landing-machine-room-craft.md): the one-light
+   model, a grain dither, a self-hosted display/mono pairing, and a scroll-narrative
+   that degrades to a static step timeline. Everything themes off the SAME two brand
+   colors as the rest of the engine. Nothing here renders unless a site opts in
+   (data-craft on <html>, or a scrollNarrative section); default output is unchanged.
+   ============================================================================ */
+
+/* Type tokens. Default to ZERO-third-party system stacks; craft.fonts swaps in the
+   self-hosted OFL subsets below. Referenced by the narrative and by craft headings. */
+:root {
+  --font-display: var(--font-body);
+  --font-mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas, monospace;
+  --ease-craft: cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+/* Self-hosted OFL subsets (SIL Open Font License 1.1; provenance: public/fonts/OFL.md).
+   Declared always, but a face is only FETCHED when referenced, which happens only under
+   [data-craft~="fonts"] below, so a site without the pairing issues no font request. */
+@font-face { font-family: "Barlow"; font-weight: 600; font-style: normal; font-display: swap; src: url("/fonts/barlow-600.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 800; font-style: normal; font-display: swap; src: url("/fonts/barlow-800.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-style: normal; font-display: swap; src: url("/fonts/plex-mono-500.woff2") format("woff2"); }
+
+[data-craft~="fonts"] {
+  --font-display: "Barlow", var(--font-body);
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+}
+[data-craft~="fonts"] h1,
+[data-craft~="fonts"] h2,
+[data-craft~="fonts"] h3 { font-family: var(--font-display); }
+
+/* --- one-light model: a dark machine-room surface derived from the two brand colors ---
+   The surface tokens remap in ONE place, so every existing section (cards, footer, forms,
+   header) reskins to the dark surface with no per-section work: the two-color contract,
+   honored on a dark ground. Text-on-primary spots are re-lit further down. */
+[data-craft~="one-light"]:not([data-theme]) {
+  --key-x: 62%;
+  --key-y: -12%;
+  /* !important so the dark remap beats the per-site brand tokens that themeVars writes as an
+     INLINE style on <html> (inline wins over a selector, but a stylesheet !important wins over
+     a non-important inline value). --key-x/--key-y are deliberately NOT !important so a site
+     can still tune the light position via craftVars. --color-primary/--color-accent are left
+     as the site set them (the brand stays the brand); only the surface palette is remapped. */
+  --color-bg: color-mix(in srgb, var(--color-primary) 12%, #0b0e10) !important;
+  --color-text: #e8edf1 !important;
+  --muted: color-mix(in srgb, #e8edf1 62%, transparent) !important;
+  --line: color-mix(in srgb, #ffffff 14%, transparent) !important;
+  --surface: color-mix(in srgb, var(--color-primary) 24%, #0b0e10) !important;
+}
+/* The multi-stop dark gradient (the base), fixed so the light does not scroll away. */
+[data-craft~="one-light"]:not([data-theme]) body {
+  color: var(--color-text);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-primary) 22%, #0b0e10) 0%,
+      #0b0e10 58%,
+      #07090b 100%
+    );
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+/* The single overhead key light: brightest at the top, falling off down the page. */
+[data-craft~="one-light"]:not([data-theme]) body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background: radial-gradient(
+    1200px 640px at var(--key-x, 62%) var(--key-y, -12%),
+    color-mix(in srgb, var(--color-accent) 22%, transparent),
+    transparent 62%
+  );
+}
+/* Hero and surface bands go translucent so the one light shows through; hero text is light. */
+[data-craft~="one-light"]:not([data-theme]) .hero { background: transparent; color: #fff; }
+[data-craft~="one-light"]:not([data-theme]) .site-header { background: color-mix(in srgb, #0b0e10 68%, transparent); }
+/* Re-light every "primary-as-text" spot so it does not sit dark-on-dark. It becomes a light,
+   accent-tinted ink (mixed toward --color-text so it stays legible whatever the brand accent). */
+[data-craft~="one-light"]:not([data-theme]) a,
+[data-craft~="one-light"]:not([data-theme]) .brand-mark,
+[data-craft~="one-light"]:not([data-theme]) .nav a:hover,
+[data-craft~="one-light"]:not([data-theme]) .site-footer a:hover,
+[data-craft~="one-light"]:not([data-theme]) .faq__q,
+[data-craft~="one-light"]:not([data-theme]) .careers__reality h3,
+[data-craft~="one-light"]:not([data-theme]) .prose h3,
+[data-craft~="one-light"]:not([data-theme]) .blogcard h2 a:hover,
+[data-craft~="one-light"]:not([data-theme]) .product__price,
+[data-craft~="one-light"]:not([data-theme]) .btn--ghost {
+  color: color-mix(in srgb, var(--color-accent) 62%, var(--color-text));
+}
+
+/* ============================================================================
+   Dual-theme layer (G1 toggle + G2 per-theme palette; founder-approved 2026-07-12).
+   These rules apply ONLY to a theme-enabled site: the engine emits [data-theme] on
+   <html> only when the config carries `theme.enabled`, so a craft-only or plain site
+   (no [data-theme]) is byte-for-byte unchanged and the R5 one-light back-compat rule
+   above still owns its dark surface. The per-theme --rl-* token VALUES come from the
+   server-rendered token sheet (lib/theme-tokens.mjs), so ONE set of rules serves both
+   light and dark: --rl-page-bleed / --rl-hero-glow / --rl-grain-opacity differ by theme.
+   DARK is the R5 machine-room, retokenized to the design bundle's exact dark tokens;
+   for byte-match --key-x/--key-y are inert here (the glow position is baked into
+   --rl-hero-glow), resolving the --hero-glow vs --key-x/--key-y overlap.
+   ============================================================================ */
+
+/* The page-bleed backdrop, fixed so the light does not scroll away. */
+:root[data-theme] body {
+  background: var(--rl-page-bleed, var(--color-bg));
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+/* The overhead key light (the hero glow radial), per-theme. */
+:root[data-theme] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background: var(--rl-hero-glow, transparent);
+}
+/* Grain dither, per-theme opacity (light 0.03 / dark 0.05 in the bundle). Reads
+   --rl-grain-opacity, NOT the craft --grain-opacity, so the two never collide. */
+:root[data-theme] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--rl-grain-opacity, 0);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+}
+/* Rich card surfaces: the engine's card-like sections use --rl-card so they lift off the
+   page bleed (light) and read as machine-room panels (dark). */
+:root[data-theme] .card,
+:root[data-theme] .product,
+:root[data-theme] .quote,
+:root[data-theme] .summary,
+:root[data-theme] .blogcard,
+:root[data-theme] .records__item,
+:root[data-theme] .mod,
+:root[data-theme] .field input,
+:root[data-theme] .field textarea,
+:root[data-theme] .field select {
+  background: var(--rl-card);
+}
+/* Text ON the green (accent) fills follows the per-theme onGreen token, so accent buttons and
+   the call bar stay legible in BOTH themes (dark text on dark-green fails otherwise). */
+:root[data-theme] .btn--accent,
+:root[data-theme] .callbar {
+  color: var(--rl-on-green, #16181d);
+}
+/* Dark theme only: the machine-room re-lighting. The hero goes translucent so the one light
+   shows through, and the header goes glassy-dark. Light theme keeps the standard solid-primary
+   hero (green) and a light glass header. In dark the alias bridge already maps --color-primary
+   /--color-accent to the light dark-mode green and --color-text to the light ink, so links,
+   prices, eyebrows and the focus ring stay legible dark-on-light with no extra re-light. */
+:root[data-theme="dark"] .hero { background: transparent; color: #fff; }
+:root[data-theme="dark"] .site-header { background: color-mix(in srgb, #0b0e10 68%, transparent); }
+
+/* The 44px nav moon/sun toggle. Brand-neutral: it themes off the same tokens as the rest of
+   the nav, so it reskins with the palette. Only rendered when the theme block is enabled. */
+.theme-btn {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  color: var(--muted);
+  transition: color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.theme-btn:hover { color: var(--color-text); border-color: var(--color-accent); }
+.theme-btn:active { transform: scale(0.94); }
+.theme-btn svg { width: 18px; height: 18px; }
+.theme-btn .moon { display: block; }
+.theme-btn .sun { display: none; }
+:root[data-theme="dark"] .theme-btn .moon { display: none; }
+:root[data-theme="dark"] .theme-btn .sun { display: block; }
+
+/* --- grain dither: stitched-tile fractalNoise, plain layer, kills gradient banding ---
+   Inline SVG data URI (zero requests). Pairs with one-light; on a light site it is a faint
+   paper texture. Sits above the key light, below content. */
+[data-craft~="grain"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--grain-opacity, 0.05);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+}
+
+/* --- scroll narrative: pinned threshold scenes that degrade to a step timeline ---
+   Default layout (no-JS, narrow screens, reduced motion): a stacked vertical step timeline,
+   fully readable with zero script. The pinned scroll-driven version is a gated enhancement. */
+.narrative__head { text-align: center; }
+.narrative__body { position: relative; margin-top: 2rem; }
+.narrative__scenes {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 0;
+}
+.scene { text-align: center; }
+.scene__plate {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+.scene__visual {
+  position: relative;
+  margin: 0 auto;
+  width: min(340px, 100%);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.55);
+}
+.scene__visual img { width: 100%; display: block; aspect-ratio: 4 / 3; object-fit: cover; }
+.scene__visual video { width: 100%; display: block; }
+.scene__cap { margin-top: 0.9rem; color: var(--muted); font-size: 0.98rem; line-height: 1.5; }
+.narrative__rail { display: none; }
+
+/* Pinned enhancement: wide screens, motion allowed, JS present (.story-js added by the
+   ScrollNarrative effect). The track height is reserved from the inline --scene-count in the
+   SSR markup, so the pinned layout claims its space from first paint (zero layout shift). */
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .narrative.story-js .narrative__track { height: calc(var(--scene-count, 5) * 90vh); }
+  .narrative.story-js .narrative__stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    contain: layout style;
+    padding: 5rem 0 2rem;
+  }
+  .narrative.story-js .narrative__body {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+  }
+  .narrative.story-js .narrative__scenes {
+    position: relative;
+    display: block;
+    width: min(460px, 100%);
+    max-width: none;
+    height: 100%;
+    margin: 0;
+  }
+  .narrative.story-js .scene {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+    pointer-events: none;
+    transition: opacity 0.45s var(--ease-craft), transform 0.5s var(--ease-craft);
+  }
+  .narrative.story-js .scene.is-on { opacity: 1; transform: none; pointer-events: auto; }
+  .narrative.story-js .scene.is-past { opacity: 0; transform: translateY(-18px) scale(0.985); }
+  /* The rail is a sibling of the scenes list; anchor it to the centered 460px column's left
+     edge: 50% - 230px (half the column) - 40px (gutter). */
+  .narrative.story-js .narrative__rail {
+    display: block;
+    position: absolute;
+    left: calc(50% - 270px);
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--line);
+  }
+  .narrative.story-js .narrative__rail i {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--color-accent);
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+}
+
+/* ============================================================================
+   Phase-A product-marketing layer - pricing section (software archetype).
+   Brand-neutral: themes off the same two brand colors as everything above. The
+   highlighted plan gets a primary-tinted border; a site may add its own style
+   (for example a gradient price) on .plan--highlighted without engine changes.
+   ============================================================================ */
+.plans { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: start; }
+.plan { position: relative; display: flex; flex-direction: column; gap: 0.5rem; border: 1px solid var(--line); border-radius: var(--radius); padding: 1.75rem 1.5rem; background: var(--color-bg); }
+.plan--highlighted { border-color: var(--color-primary); border-width: 2px; box-shadow: 0 8px 30px color-mix(in srgb, var(--color-primary) 12%, transparent); }
+.plan__badge { position: absolute; top: -0.75rem; left: 1.5rem; background: var(--color-primary); color: #fff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.25rem 0.6rem; border-radius: 999px; }
+.plan__name { margin: 0; font-size: 1.15rem; }
+.plan__price { margin: 0; font-weight: 800; font-size: 1.9rem; color: var(--color-primary); line-height: 1.1; }
+.plan__period { font-weight: 600; font-size: 0.9rem; color: var(--muted); }
+.plan__meta { margin: 0; font-size: 0.85rem; color: var(--muted); }
+.plan__who { margin: 0.25rem 0 0; font-weight: 600; }
+.plan__features { list-style: none; margin: 0.75rem 0 0; padding: 0; display: grid; gap: 0.5rem; }
+.plan__features li { position: relative; padding-left: 1.4rem; color: var(--color-text); }
+.plan__features li::before { content: ""; position: absolute; left: 0; top: 0.5rem; width: 0.55rem; height: 0.55rem; border-radius: 2px; background: var(--color-accent); }
+.plan__cta { margin-top: auto; align-self: flex-start; }
+
+/* ============================================================================
+   R5.1 - craft + motion layer (harvested from the 2026-07-12 design bundle).
+   Config-gated and brand-neutral: renders only under an opt-in [data-craft~="..."]
+   token (glass / aurora / magnetic / hero-motion) or a per-section flag
+   (.plan--hot-gradient), and derives entirely from the two brand colors plus the
+   per-theme --rl-* tokens. A site that opts into nothing emits none of it, so
+   existing demos render identically. Motion honors the master reduced-motion guard
+   at the top of this file (which settles all animation + transition).
+   ============================================================================ */
+
+/* Grouped craft-token DEFAULTS, derived from the two brand colors. The theme layer
+   overrides these per-theme (:root[data-theme] wins on specificity) with the design
+   bundle exact values; a craft-only site (no theme block) reads these, so it gets
+   glass, depth, and status chips for free from its two colors. Unused unless a card
+   is glass-treated or a status chip is rendered, so this changes no default output. */
+:root {
+  --rl-glass-fill: color-mix(in srgb, var(--color-bg) 72%, transparent);
+  --rl-glass-edge: color-mix(in srgb, #ffffff 70%, transparent);
+  --rl-glass-line-top: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  --rl-glass-glow: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  --rl-shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-text) 8%, transparent);
+  --rl-shadow-md: 0 10px 28px -10px color-mix(in srgb, var(--color-text) 14%, transparent);
+  --rl-shadow-lg: 0 24px 56px -18px color-mix(in srgb, var(--color-text) 20%, transparent);
+  --rl-status-amber-ink: color-mix(in srgb, #c9962f 58%, var(--color-text));
+  --rl-status-amber-bg: color-mix(in srgb, #c9962f 16%, var(--color-bg));
+  --rl-status-blue-ink: color-mix(in srgb, #3f6fb0 58%, var(--color-text));
+  --rl-status-blue-bg: color-mix(in srgb, #3f6fb0 16%, var(--color-bg));
+  --rl-status-green-ink: color-mix(in srgb, var(--color-accent) 58%, var(--color-text));
+  --rl-status-green-bg: color-mix(in srgb, var(--color-accent) 16%, var(--color-bg));
+  --rl-status-red-ink: color-mix(in srgb, #b25050 58%, var(--color-text));
+  --rl-status-red-bg: color-mix(in srgb, #b25050 16%, var(--color-bg));
+}
+
+/* --- glassHover: opt-in card treatment (data-craft "glass") --- */
+[data-craft~="glass"] .card,
+[data-craft~="glass"] .quote,
+[data-craft~="glass"] .product,
+[data-craft~="glass"] .blogcard,
+[data-craft~="glass"] .records__item,
+[data-craft~="glass"] .svc-card,
+[data-craft~="glass"] .mod {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s var(--ease-craft), border-color 0.22s var(--ease-craft),
+    box-shadow 0.22s var(--ease-craft), background 0.22s var(--ease-craft);
+}
+[data-craft~="glass"] .card::before,
+[data-craft~="glass"] .quote::before,
+[data-craft~="glass"] .product::before,
+[data-craft~="glass"] .blogcard::before,
+[data-craft~="glass"] .records__item::before,
+[data-craft~="glass"] .svc-card::before,
+[data-craft~="glass"] .mod::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-craft);
+  background: radial-gradient(
+    260px circle at var(--mx, 50%) var(--my, 24%),
+    var(--rl-glass-glow, transparent),
+    transparent 70%
+  );
+}
+@media (hover: hover) and (pointer: fine) {
+  [data-craft~="glass"] .card:hover::before,
+  [data-craft~="glass"] .quote:hover::before,
+  [data-craft~="glass"] .product:hover::before,
+  [data-craft~="glass"] .blogcard:hover::before,
+  [data-craft~="glass"] .records__item:hover::before,
+  [data-craft~="glass"] .svc-card:hover::before,
+  [data-craft~="glass"] .mod:hover::before {
+    opacity: 1;
+  }
+  [data-craft~="glass"] .card:hover,
+  [data-craft~="glass"] .quote:hover,
+  [data-craft~="glass"] .product:hover,
+  [data-craft~="glass"] .blogcard:hover,
+  [data-craft~="glass"] .records__item:hover,
+  [data-craft~="glass"] .svc-card:hover,
+  [data-craft~="glass"] .mod:hover {
+    transform: translateY(-2px);
+    border-top-color: var(--rl-glass-line-top);
+    background: var(--rl-glass-fill);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
+    backdrop-filter: blur(12px) saturate(1.4);
+    box-shadow: var(--rl-shadow-md), inset 0 1px 0 var(--rl-glass-edge);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    [data-craft~="glass"] .card:hover,
+    [data-craft~="glass"] .quote:hover,
+    [data-craft~="glass"] .product:hover,
+    [data-craft~="glass"] .blogcard:hover,
+    [data-craft~="glass"] .records__item:hover,
+    [data-craft~="glass"] .svc-card:hover,
+    [data-craft~="glass"] .mod:hover {
+      background: var(--color-bg);
+    }
+  }
+}
+
+/* --- gradient hot-plan price (the ONE sanctioned gradient-text exception).
+   Applied by Pricing.tsx ONLY to the highlighted tier when the section sets gradientPrice;
+   every other plan keeps the solid --color-primary price. Two stops from the two brand colors
+   so even a single-hue brand shows a gradient. --- */
+.plan--hot-gradient .plan__price {
+  /* Two stops from the accent hue (base -> a lighter tint), so the clip reads on BOTH a light
+     surface and the dark one-light / dark-theme surface, and a single-hue brand still shows a
+     gradient. Brand-neutral: no color is baked, it derives from the one accent color. */
+  background: linear-gradient(
+    100deg,
+    var(--color-accent),
+    color-mix(in srgb, var(--color-accent) 55%, #ffffff)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.plan--hot-gradient .plan__price .plan__period {
+  -webkit-text-fill-color: var(--muted);
+  color: var(--muted);
+}
+
+/* --- aurora: drifting brand-tinted hero blobs (data-craft "aurora"; markup from Hero.tsx) --- */
+[data-craft~="aurora"] .hero { position: relative; overflow: hidden; }
+[data-craft~="aurora"] .hero__inner { position: relative; z-index: 1; }
+.hero__aurora {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  filter: blur(64px);
+  opacity: 0.5;
+}
+.hero__aurora i { position: absolute; border-radius: 50%; will-change: transform; }
+.hero__aurora i:nth-child(1) {
+  width: 520px; height: 420px; left: 50%; top: -26%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--color-accent) 34%, transparent), transparent 70%);
+  animation: rl-aur1 19s ease-in-out infinite alternate;
+}
+.hero__aurora i:nth-child(2) {
+  width: 440px; height: 380px; left: 72%; top: 6%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--color-primary) 26%, transparent), transparent 70%);
+  animation: rl-aur2 23s ease-in-out infinite alternate;
+}
+.hero__aurora i:nth-child(3) {
+  width: 380px; height: 330px; left: -8%; top: 34%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--color-accent) 24%, transparent), transparent 70%);
+  animation: rl-aur3 26s ease-in-out infinite alternate;
+}
+@keyframes rl-aur1 { to { transform: translate(-60px, 44px) scale(1.08); } }
+@keyframes rl-aur2 { to { transform: translate(44px, -30px) scale(0.94); } }
+@keyframes rl-aur3 { to { transform: translate(52px, -42px) scale(1.1); } }
+
+/* --- hero motion: staggered rise-in + an accent underline that draws once (data-craft "hero-motion").
+   The hidden initial state is scoped to prefers-reduced-motion: no-preference, so under reduced
+   motion (or the master guard) everything is simply shown, static. Pure CSS, no-JS safe. --- */
+[data-craft~="hero-motion"] .hero h1 { position: relative; }
+@media (prefers-reduced-motion: no-preference) {
+  [data-craft~="hero-motion"] .hero__inner > * {
+    opacity: 0;
+    animation: rl-hero-rise 0.7s var(--ease-craft) forwards;
+  }
+  [data-craft~="hero-motion"] .hero__inner > *:nth-child(1) { animation-delay: 0ms; }
+  [data-craft~="hero-motion"] .hero__inner > *:nth-child(2) { animation-delay: 70ms; }
+  [data-craft~="hero-motion"] .hero__inner > *:nth-child(3) { animation-delay: 150ms; }
+  [data-craft~="hero-motion"] .hero__inner > *:nth-child(4) { animation-delay: 230ms; }
+  [data-craft~="hero-motion"] .hero__inner > *:nth-child(5) { animation-delay: 300ms; }
+  [data-craft~="hero-motion"] .hero h1::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -0.12em;
+    width: 2.5em;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--color-accent);
+    opacity: 0.85;
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: rl-underline-draw 0.7s var(--ease-craft) 0.8s forwards;
+  }
+}
+@keyframes rl-hero-rise { to { opacity: 1; transform: none; } }
+@keyframes rl-underline-draw { to { transform: scaleX(1); } }
+
+/* --- magnetic CTA: the script translates the button; declare will-change for a smooth transform --- */
+[data-craft~="magnetic"] .btn--primary,
+[data-craft~="magnetic"] .btn--accent { will-change: transform; transition: translate 0.2s var(--ease-craft); }
+
+/* --- reduced-motion: settle the new effects instantly. The master guard at the top of this file
+   already kills all animation + transition (aurora drift, hero rise, underline draw); the magnetic
+   and glow scripts never attach under reduced motion. Here we additionally neutralize the glass
+   hover LIFT and any residual magnetic translate, so NOTHING moves. --- */
+@media (prefers-reduced-motion: reduce) {
+  [data-craft~="glass"] .card:hover,
+  [data-craft~="glass"] .quote:hover,
+  [data-craft~="glass"] .product:hover,
+  [data-craft~="glass"] .blogcard:hover,
+  [data-craft~="glass"] .records__item:hover,
+  [data-craft~="glass"] .svc-card:hover,
+  [data-craft~="glass"] .mod:hover { transform: none; }
+  [data-craft~="magnetic"] .btn--primary,
+  [data-craft~="magnetic"] .btn--accent { translate: none; }
+}
+
+/* =============================================================================
+   Multi-CTA hero extras + the modal request-access form (harvested from the
+   2026-07-12 design bundle). All additive: these classes only render when a
+   config opts into the new capabilities, so every existing page is unchanged.
+   Brand-neutral throughout, deriving from the two brand colors.
+   ============================================================================= */
+
+/* --- Hero proof-chip row (Section.proof): mono micro-proof with brand-accent dots --- */
+.hero__proof {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.85);
+}
+.hero__proof li { display: inline-flex; align-items: center; gap: 0.5rem; }
+.hero__proof i { width: 5px; height: 5px; border-radius: 50%; background: var(--color-accent); flex: none; }
+
+/* --- Hero-viz split (Section.heroViz): a two-column hero on wide screens. The engine only frames
+   the slot; the SITE supplies the markup. Single-column (unchanged) below 960px. --- */
+.hero__viz { margin-top: 2rem; }
+.hero__viz > * { max-width: 100%; }
+@media (min-width: 960px) {
+  .hero--split .hero__inner {
+    max-width: var(--container);
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    column-gap: 3rem;
+    align-items: center;
+  }
+  .hero--split .hero__inner > * { grid-column: 1; }
+  .hero--split .hero__viz { grid-column: 2; grid-row: 1 / -1; align-self: center; margin-top: 0; }
+}
+
+/* --- Modal request-access form (Section.modal / formFields). DEFAULT styling assumes JS (the
+   modal chrome); the component's <noscript> style flips it to a plain inline card when scripting
+   is off, so a no-JS visitor gets a normal inline form and never a broken overlay. --- */
+.leadmodal__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: color-mix(in srgb, var(--color-text) 45%, transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.24s ease, visibility 0.24s ease;
+}
+.leadmodal.is-open .leadmodal__scrim { opacity: 1; visibility: visible; }
+.leadmodal__panel {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  overflow: auto;
+  background: var(--color-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.5rem 1.6rem;
+  box-shadow: 0 24px 56px -18px rgba(0, 0, 0, 0.25);
+  transform: translateY(14px) scale(0.97);
+  opacity: 0;
+  transition: transform 0.26s cubic-bezier(0.2, 0.9, 0.3, 1.1), opacity 0.22s ease;
+}
+.leadmodal.is-open .leadmodal__panel { transform: none; opacity: 1; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .leadmodal__scrim { background: color-mix(in srgb, var(--color-text) 62%, transparent); }
+}
+.leadmodal__head { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.25rem; }
+.leadmodal__head h3 { margin: 0; }
+.leadmodal__x {
+  margin-left: auto;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--color-bg);
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.leadmodal__x:hover { color: var(--color-text); }
+.leadmodal__form { margin-top: 1rem; }
+.leadmodal__foot { display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; margin-top: 0.25rem; }
+.leadmodal__foot .form__status { margin-top: 0; flex: 1; min-width: 160px; color: var(--muted); }
+.leadmodal__done { text-align: center; padding: 0.75rem 0.25rem 0.25rem; }
+.leadmodal__tick {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 0.9rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--color-primary);
+  font-size: 28px;
+}
+.leadmodal__done p { color: var(--muted); max-width: 40ch; margin: 0 auto 0.5rem; }
+
+/* Rich-field extras: the required marker, and the checkbox-group chips. */
+.req { color: var(--color-accent); }
+.ra-group { border: 0; padding: 0; margin: 0 0 1rem; min-width: 0; }
+.ra-group legend { font-weight: 600; font-size: 0.92rem; padding: 0; margin-bottom: 0.4rem; }
+.ra-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.ra-chip { position: relative; cursor: pointer; }
+.ra-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.ra-chip span {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--color-bg);
+}
+.ra-chip:hover span { border-color: var(--color-primary); color: var(--color-text); }
+.ra-chip input:checked + span { color: #fff; background: var(--color-primary); border-color: var(--color-primary); }
+.ra-chip input:focus-visible + span { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+
+/* =============================================================================
+   Chrome polish (harvested from the 2026-07-12 design bundle): the DUSK closing
+   band, FEATURE-CARD treatments (badge / flagship / mini-visual slot), NAV condense
+   + a SCROLL-PROGRESS hairline, and the FOOTER dusk band. All additive + config-gated
+   + brand-neutral: each rule keys off a class the engine emits ONLY when a config opts
+   in, so a site that opts into nothing renders byte-for-byte as before. Every color
+   derives from the two brand colors plus neutral dark base literals (no baked brand
+   hue); motion honors the master reduced-motion guard at the top of this file.
+   ============================================================================= */
+
+/* --- DUSK closing band: a DARK-in-BOTH-themes surface derived from the two brand colors
+   (Section.dusk on the closing CTA; footer.dusk on the footer). It locally remaps the
+   surface tokens on the banded element, so the remap wins for that subtree in light theme,
+   dark theme, and a plain (no-theme) site alike, with NO !important: a custom property set
+   directly on the element beats the value it would inherit from :root. Same recipe as the
+   one-light model, scoped to the band, so it stays AA and reskins with the brand. --- */
+.dusk {
+  color-scheme: dark;
+  --color-bg: color-mix(in srgb, var(--color-primary) 12%, #0b1210);
+  --color-text: #eaf1ec;
+  --muted: color-mix(in srgb, #eaf1ec 62%, transparent);
+  --line: color-mix(in srgb, #ffffff 12%, transparent);
+  --surface: color-mix(in srgb, var(--color-primary) 22%, #0b1210);
+  color: var(--color-text);
+}
+/* Re-light every "primary-as-text" spot inside the band so it is not dark-on-dark (mirrors
+   the one-light re-light): a light, accent-tinted ink that stays legible on the dark band. */
+.dusk a,
+.dusk .btn--ghost,
+.dusk .faq__q,
+.dusk .plan__price,
+.dusk .product__price {
+  color: color-mix(in srgb, var(--color-accent) 60%, var(--color-text));
+}
+.dusk .btn--ghost { border-color: var(--line); }
+/* The closing CTA band: a gradient descent from the brand primary into dark. The filled
+   .cta-banner tile goes transparent so the copy reads on the band, not a solid box. */
+.section--dusk {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-primary) 30%, #0b1210) 0%,
+    color-mix(in srgb, var(--color-primary) 12%, #0b1210) 44%,
+    #0a100e 100%
+  );
+}
+.section--dusk .cta-banner {
+  background: transparent;
+  padding-block: clamp(2.5rem, 6vw, 4rem);
+}
+/* The footer dusk band: the darkest step of the descent. */
+.site-footer--dusk {
+  background: color-mix(in srgb, var(--color-primary) 8%, #070c0a);
+  border-top-color: color-mix(in srgb, #ffffff 8%, transparent);
+}
+
+/* --- FEATURE-CARD treatments (FeatureItem.badge / flagship / viz). Nothing renders unless
+   an item sets one; a card with only title/body/icon is unchanged. --- */
+.card__badge {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-accent) 70%, var(--color-text));
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-bg));
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.28rem 0.5rem;
+}
+.card--flagship {
+  grid-column: 1 / -1;
+  border-left: 3px solid var(--color-accent);
+}
+.card__viz { margin-top: 1rem; }
+.card__viz > * { max-width: 100%; }
+@media (min-width: 861px) {
+  .card--flagship.card--hasviz {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(150px, auto);
+    column-gap: 1.5rem;
+    align-items: center;
+  }
+  .card--flagship.card--hasviz .card__body { grid-column: 1; }
+  .card--flagship.card--hasviz .card__viz { grid-column: 2; margin-top: 0; }
+}
+/* Reduced-motion-safe reveal for the site-supplied slot: a one-shot fade/rise scoped to
+   no-preference (reduced motion shows it static; the master guard settles it too). No-JS safe. */
+@media (prefers-reduced-motion: no-preference) {
+  .card--hasviz .card__viz { animation: rl-viz-in 0.6s var(--ease-craft) both; }
+}
+@keyframes rl-viz-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* --- NAV condense (NavConfig.condense): the sticky header tightens past a small scroll
+   threshold. Progressive enhancement: a tiny passive listener toggles .is-scrolled; with no
+   JS the header keeps its full height (never a layout-shifting jump on load). Fully gated
+   behind .site-header--condense, so a site that does not opt in is unchanged. --- */
+.site-header--condense .site-header__row { transition: padding-block 0.3s var(--ease-craft); }
+.site-header--condense.is-scrolled { box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text) 10%, transparent); }
+.site-header--condense.is-scrolled .site-header__row { padding-block: 0.55rem; }
+
+/* --- SCROLL-PROGRESS hairline (NavConfig.progress): pure CSS scroll-driven, no JS. Shown only
+   where animation-timeline is supported; hidden otherwise and under reduced motion. --- */
+.scroll-progress { display: none; }
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 60;
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    background: var(--color-primary);
+    animation: rl-scroll-progress linear both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes rl-scroll-progress { to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .scroll-progress { display: none; }
+}

@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "0.4.0",
+  "tenantSlug": "summit-vertical",
+  "generatedAt": "2026-07-10T00:00:00Z",
+  "approvedAt": "2026-07-10T18:30:00Z",
+  "approvedBy": "office-user-demo-0001",
+  "identity": {
+    "name": "Summit Vertical Services",
+    "tagline": "Elevator and escalator service for mixed-manufacturer routes across the Puget Sound region.",
+    "phone": "(555) 018-7700",
+    "email": "service@summit-vertical.example",
+    "region": "WA",
+    "locality": "Demo City",
+    "serviceArea": "Serving King, Pierce, and Kitsap counties",
+    "hours": "Mon to Fri 7am to 4pm, on-call after hours"
+  },
+  "credentials": {
+    "licenseNumber": { "value": "SUMMITVS-000-DEMO", "attested": true },
+    "registryUrl": "https://secure.lni.wa.gov/verify/",
+    "bonded": { "value": true, "attested": false },
+    "insured": { "value": true, "attested": true },
+    "yearsInBusiness": { "value": 18, "attested": true }
+  },
+  "fleet": {
+    "manufacturers": ["Otis", "KONE", "Schindler", "TK Elevator"],
+    "equipClasses": ["traction", "hydraulic"],
+    "statesServed": ["WA"],
+    "hasModernization": true,
+    "hasPeriodicTesting": false
+  },
+  "services": {
+    "fullMaintenance": true,
+    "oilLube": false
+  },
+  "wiring": {
+    "intakeUrl": "https://portal.summit-vertical.example/api/intake",
+    "portalUrl": "https://portal.summit-vertical.example/",
+    "dispatchRouted": false
+  },
+  "assets": {
+    "modProjects": [
+      {
+        "id": "proj-1",
+        "equipmentClass": "Hydraulic passenger",
+        "scope": "Controller and fixture replacement",
+        "timeline": "3 weeks",
+        "caption": "Original 1980s relay logic replaced with a modern controller.",
+        "before": {
+          "assetId": "att-demo-1a",
+          "mime": "image/png",
+          "src": "assets/proj-1-before.png",
+          "alt": "Before: hydraulic passenger controller replacement."
+        },
+        "after": {
+          "assetId": "att-demo-1b",
+          "mime": "image/png",
+          "src": "assets/proj-1-after.png",
+          "alt": "After: hydraulic passenger controller replacement."
+        }
+      },
+      {
+        "id": "proj-2",
+        "equipmentClass": "Traction passenger",
+        "scope": "Machine and controller modernization",
+        "timeline": "5 weeks",
+        "caption": "New machine and controller with the existing rails kept in service.",
+        "before": {
+          "assetId": "att-demo-2a",
+          "mime": "image/png",
+          "src": "assets/proj-2-before.png",
+          "alt": "Before: traction machine and controller modernization."
+        },
+        "after": {
+          "assetId": "att-demo-2b",
+          "mime": "image/png",
+          "src": "assets/proj-2-after.png",
+          "alt": "After: traction machine and controller modernization."
+        }
+      },
+      {
+        "id": "proj-3",
+        "equipmentClass": "Freight",
+        "scope": "Door operator replacement",
+        "timeline": "2 weeks",
+        "caption": "Photos still being sorted for this one.",
+        "before": {
+          "assetId": "att-demo-3a",
+          "mime": "image/png",
+          "src": "assets/proj-3-before.png",
+          "alt": "Before: freight door operator replacement."
+        },
+        "after": {
+          "assetId": "att-demo-3b",
+          "mime": "image/png",
+          "src": "assets/proj-3-after.png",
+          "alt": "After: freight door operator replacement."
+        }
+      }
+    ]
+  },
+  "articles": [
+    {
+      "slug": "choosing-an-elevator-service-company",
+      "title": "How to choose an elevator service company",
+      "description": "A short, plain-English guide for building owners and property managers.",
+      "eyebrow": "Field notes",
+      "date": "2026-07-01",
+      "author": "Summit Vertical Services",
+      "lede": "A few things separate a company that keeps you informed from one that does not.",
+      "draft": false,
+      "summary": {
+        "label": "The short version",
+        "intro": "If you are deciding who maintains your elevators, here is what to look for.",
+        "points": [
+          "They cover your equipment across manufacturers, not just one brand.",
+          "They keep the maintenance log, test records, and written program together per unit.",
+          "You can see status and history without chasing anyone."
+        ]
+      },
+      "body": "Choosing who maintains your elevators comes down to a few plain things.\n\nFirst, do they cover your equipment across manufacturers, or only one brand? A building with mixed makes is easier to service when one team handles all of it and sources parts across manufacturers.\n\nSecond, ask how they keep records. A maintenance log, test records, and the written program should live together per unit, and you should be able to see them without chasing anyone.\n\nThird, ask what happens when something is down after hours. A real on-call path matters more than a line on a website.",
+      "faqs": [
+        {
+          "q": "How often should elevators be maintained?",
+          "a": "Most passenger elevators are on a monthly or quarterly maintenance plan. What applies to your building depends on the equipment and what your jurisdiction has adopted; your authority having jurisdiction and your service company confirm the schedule."
+        }
+      ]
+    },
+    {
+      "slug": "reading-your-service-history",
+      "title": "Reading your service history",
+      "description": "What the log tells you, and how to spot a unit that needs attention.",
+      "eyebrow": "Field notes",
+      "date": "2026-06-15",
+      "author": "Summit Vertical Services",
+      "draft": true,
+      "body": "A service history is more useful than a single visit. Look for repeat callbacks on the same unit, parts replaced more than once, and gaps where a scheduled visit was missed.\n\nThis one is still a draft while we finish the screenshots."
+    },
+    {
+      "slug": "half-written-note",
+      "title": "A half-written note"
+    }
+  ],
+  "brand": {
+    "primary": "#12324a",
+    "accent": "#f2a541",
+    "font": "sans",
+    "logoRef": null,
+    "domain": "https://summit-vertical.example"
+  }
+}

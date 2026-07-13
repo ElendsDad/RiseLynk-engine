@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# next.js build output
+.next/
+out/
+next-env.d.ts
+
+# vercel
+.vercel/
+
+# local env files (secrets never committed)
+.env
+.env*
+
+# typescript
+*.tsbuildinfo
+
+# os
+.DS_Store
+
+# NOTE: dist/ is intentionally NOT ignored. The riselynk.com config that the
+# active-site seam points at lives at dist/site/riselynk/site.config.ts and MUST
+# be committed for the build. (The upstream site-engine repo ignores dist/ because
+# there it is hydrator output; here it is the committed, load-bearing site config.)
