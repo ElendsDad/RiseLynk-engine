@@ -164,6 +164,8 @@ export const site: SiteConfig = {
   footer: {
     legalName: "Maxwell Industries LLC",
     links: [
+      { label: "Trust", href: "/trust" },
+      { label: "Security", href: "/security" },
       { label: "Privacy", href: "/privacy" },
       { label: "Cookies", href: "/cookies" },
       { label: "Pitch", href: "/pitch" },
@@ -1336,6 +1338,188 @@ Click through the field app, dispatch board, and customer portal on synthetic da
           type: "about",
           heading: "8. Contact us",
           body: "If you have questions about this notice or about how we use cookies, contact us at:\n\nMaxwell Industries LLC (RiseLynk), 2775 Southeast Berger Lane, Port Orchard, WA 98366, USA.\n\nPrivacy contact: privacy@riselynk.com. General contact: hello@riselynk.com.",
+        },
+      ],
+    },
+
+    // ==========================================================================
+    // Trust and security (ported VERBATIM from apps/landing/trust/index.html at
+    // the 2026-07-13 apex cutover; claims-locked, do not reword). Bulleted lists
+    // flatten to prose paragraphs and the CIS table renders as `records` cards,
+    // the same accepted-downgrade idiom the legal pages above use. The one banned
+    // token in the copy ("certified", in the negation "CIS has not audited or
+    // certified us", section index 6) is carried as the single documented
+    // exception in website/tools/claims-lint-exceptions.json.
+    // ==========================================================================
+    {
+      slug: "trust",
+      title: "RiseLynk Trust and Security",
+      description:
+        "How RiseLynk protects customer data: per-customer database isolation, row-level security, encryption, access control, and our security program.",
+      sections: [
+        {
+          type: "about",
+          heading: "Trust and security",
+          body: "RiseLynk is built on per-customer database isolation, row-level security, encryption in transit and at rest, and automated security checks on every code change. This page summarizes those controls in one place.\n\nLast updated: July 14, 2026\n\nThis page is a summary written for buyers and security reviewers. It is not a warranty or a certification. Our specific contractual commitments are set out in the order form and data processing terms.",
+        },
+        {
+          type: "about",
+          heading: "Where we host and how data is protected",
+          body: "Per-customer database isolation. Every customer company runs in its own dedicated database project, never a shared database separated by software rules. Two customers are never in the same database, so separation is enforced by the architecture itself, not by a query filter. Each project has its own credentials, storage, and backups.\n\nEncryption. Data is encrypted in transit with TLS and at rest with AES-256 at the platform layer.\n\nHosting. RiseLynk runs on Supabase (managed Postgres, authentication, and storage) hosted on Amazon Web Services in United States regions, with the web applications served by Vercel. Our hosting provider (Supabase, on AWS) holds SOC 2 Type 2 and ISO 27001 certifications and supports HIPAA under a Business Associate Agreement. These are the hosting provider's certifications, not RiseLynk's own.",
+        },
+        {
+          type: "about",
+          heading: "Access control",
+          body: "Row-level security everywhere. Inside a customer workspace, row-level security is enabled on every table, and access is scoped to the signed-in user's role and permissions. A field technician sees only their assigned work, and pay and cost data is readable only by owners, supervisors, project managers, sales, and the IT administrator.\n\nStrong sign-in. Sign-in supports phishing-resistant passkeys and WebAuthn (Face ID, Touch ID, Windows Hello, and hardware security keys). Multi-factor authentication is available and can be required per customer.\n\nLeast privilege. Roles are least-privilege by default, and financial data is gated to a named set of roles.",
+        },
+        {
+          type: "about",
+          heading: "Audit logging",
+          body: "Changes to sensitive financial records (time, expenses, parts, proposals, invoices, and pay rates) are written to an append-only audit log that captures who made the change, what changed, and when. Platform-level logging and alerting cover infrastructure and authentication events.",
+        },
+        {
+          type: "about",
+          heading: "SOC 2 status",
+          body: "RiseLynk does not hold a SOC 2 report today. We have adopted an internal SOC 2 Phase 0 policy pack (adopted July 11, 2026) that documents our security program, building on the technical controls already described on this page. A formal SOC 2 audit has not started. If and when a report exists, we will describe it as an attestation available under a non-disclosure agreement, never as a certification.",
+        },
+        {
+          type: "about",
+          heading: "Security program on every change",
+          body: "Security is checked automatically as we build, not just reviewed after the fact.\n\nA pre-commit and continuous-integration security gate blocks two common mistakes: authorizing a user from client-settable metadata, and shipping a privileged server key in client code.\n\nAn automated database test suite asserts that row-level security holds and that a normal user cannot escalate their own privileges.\n\nWe run dated, written security reviews with tracked remediation.",
+        },
+        {
+          // Section index 6: the ONE claims-lint exception lives here ("certified"
+          // in "CIS has not audited or certified us"), path pages[7].sections[6].body.
+          type: "about",
+          heading: "CIS Controls IG1 self-attestation",
+          body: "We assess ourselves against the CIS Controls version 8.1, Implementation Group 1 (IG1), the essential cyber-hygiene safeguards aimed at small organizations. This is a self-attestation: we assert it ourselves, and CIS has not audited or certified us. Where a control is provided by our platform rather than built by us, we say so.",
+        },
+        {
+          type: "records",
+          heading: "CIS Controls v8.1, IG1: what RiseLynk does today",
+          records: {
+            enabled: true,
+            intro:
+              "Each row maps a CIS Controls v8.1 area in Implementation Group 1 to what RiseLynk does today.",
+            items: [
+              {
+                title: "1. Inventory and control of enterprise assets",
+                body: "Each customer runs in its own dedicated database project, tracked in a per-tenant registry with its own storage and backups.",
+              },
+              {
+                title: "3. Data protection",
+                body: "Encryption in transit (TLS) and at rest (AES-256) at the platform layer, plus per-customer data isolation. Sensitive records such as invoices are never cached on field devices, and the offline cache is wiped when a device changes users.",
+              },
+              {
+                title: "4. Secure configuration of assets and software",
+                body: "A pre-commit and continuous-integration security gate blocks the two mistakes that most often reappear: authorization from client-settable metadata, and a privileged server key in client code.",
+              },
+              {
+                title: "5. Account management and 6. Access control management",
+                body: "A server-side, least-privilege role model with row-level security enabled on every table. Passkeys, WebAuthn, and multi-factor authentication are available.",
+              },
+              {
+                title: "8. Audit log management",
+                body: "An append-only audit log on sensitive financial record changes, plus platform-level logging of infrastructure and authentication events.",
+              },
+              {
+                title: "11. Data recovery",
+                body: "Nightly encrypted backups to off-platform storage, with a weekly automated restore-verification job.",
+              },
+              {
+                title: "15. Service provider management",
+                body: "A maintained vendor register tracks each subprocessor, its data flow, and its status.",
+              },
+              {
+                title: "17. Incident response management",
+                body: "A written incident-response plan defines how a security event is detected, contained, and reported. The plan is reviewed on an annual cadence.",
+              },
+            ],
+          },
+        },
+        {
+          type: "about",
+          body: "Some of these controls are provided by our platform (for example, encryption at rest is provided by Supabase). We describe them here because they protect your data, and we are direct about which layer provides them.",
+        },
+        {
+          type: "about",
+          heading: "Report a vulnerability",
+          body: "Found a security issue? Our vulnerability disclosure page at riselynk.com/security explains how to report it and the protections we extend to good-faith researchers. The security contact is also published in our machine-readable security.txt file at riselynk.com/.well-known/security.txt.",
+        },
+        {
+          type: "about",
+          heading: "Privacy and data handling",
+          body: "How we handle personal data is covered in our public documents: the Privacy Policy at riselynk.com/privacy, the Customer Portal Privacy Notice at riselynk.com/portal-privacy, and the Cookie Notice at riselynk.com/cookies.",
+        },
+        {
+          type: "about",
+          heading: "For security reviewers",
+          body: "For a signed security questionnaire (SIG or CAIQ) or our detailed security posture summary, contact hello@riselynk.com. We share detailed policy documents under a non-disclosure agreement.",
+        },
+        {
+          type: "about",
+          body: "RiseLynk is operated by Maxwell Industries LLC, a Washington limited liability company. This page summarizes controls and is not a warranty or a certification.",
+        },
+      ],
+    },
+
+    // ==========================================================================
+    // Vulnerability disclosure (ported VERBATIM from apps/landing/security/
+    // index.html at the 2026-07-13 apex cutover; claims-locked, do not reword).
+    // Lists flatten to prose; the highlighted "Reporting in short" box maps to a
+    // `summary` card. No banned tokens; no claims-lint exception needed.
+    // ==========================================================================
+    {
+      slug: "security",
+      title: "RiseLynk Vulnerability Disclosure",
+      description:
+        "How to report a security vulnerability in RiseLynk, and our commitment to good-faith researchers.",
+      sections: [
+        {
+          type: "about",
+          heading: "Report a security vulnerability",
+          body: "Last updated: July 14, 2026\n\nRiseLynk is operated by Maxwell Industries LLC. We take the security of our platform and our customers' data seriously, and we welcome reports from security researchers. This page explains how to reach us, what to expect, and the protections we extend to anyone who reports in good faith.",
+        },
+        {
+          type: "summary",
+          heading: "Reporting in short",
+          summaryLabel: "Reporting in short",
+          ordered: false,
+          points: [
+            "Email hello@riselynk.com with the details of what you found and how to reproduce it.",
+            "We aim to acknowledge your report within 3 business days.",
+            "Test only against our own hosts. Never touch a live customer's data.",
+            "Report in good faith and we will not pursue or support legal action against you.",
+          ],
+        },
+        {
+          type: "about",
+          heading: "How to report",
+          body: "Send your report to hello@riselynk.com. A helpful report includes: a clear description of the issue and its potential impact; the exact steps, request, or proof of concept needed to reproduce it; the host, page, or endpoint affected; and your name or handle if you would like credit once the issue is fixed.\n\nThis contact is also published in our machine-readable security.txt file, per RFC 9116, at riselynk.com/.well-known/security.txt.",
+        },
+        {
+          type: "about",
+          heading: "What to expect from us",
+          body: "We aim to acknowledge your report within 3 business days. We will work to validate the issue and keep you informed of our progress. We will let you know when the issue is resolved. With your permission, we are glad to credit you once a fix is in place.\n\nWe are a small team, so we ask for your patience and, until an issue is fixed, your discretion.",
+        },
+        {
+          type: "about",
+          heading: "Safe harbor for good-faith research",
+          body: "If you make a good-faith effort to follow this policy while researching and reporting a vulnerability, we will consider your work authorized. We will not pursue or support legal action against you, and if a third party brings action against you for activity that followed this policy, we will make it known that your actions were authorized. Good faith means you avoid privacy violations, data destruction, and any disruption to our service or our customers. It also means you give us a reasonable chance to fix the issue before disclosing it publicly.",
+        },
+        {
+          type: "about",
+          heading: "Scope",
+          body: "In scope. Our public marketing site and our synthetic demo: riselynk.com, and demo.app.riselynk.com (a demo that runs on synthetic data only).\n\nOut of scope. To protect real people and real businesses, the following are not authorized targets: any live customer workspace or customer data on app.riselynk.com; denial-of-service or resource-exhaustion testing; social engineering of our staff, customers, or vendors; physical attacks against offices or devices; and spam, or automated scanning that degrades service for others.\n\nIf you are unsure whether something is in scope, email us first and ask.",
+        },
+        {
+          type: "about",
+          heading: "How our platform is built",
+          body: "For a summary of how RiseLynk protects customer data, including per-customer database isolation, row-level security, encryption, access control, and our security program, see our Trust and security page at riselynk.com/trust.",
+        },
+        {
+          type: "about",
+          body: "Thank you for helping keep RiseLynk and our customers safe.",
         },
       ],
     },
