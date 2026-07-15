@@ -9,6 +9,12 @@ import { withRatingLd } from "./rating-ld.mjs";
 // (tools/seo-jsonld.test.mjs). pricingOffersLd emits an Offer only for a real numeric price;
 // softwareAppNode assembles the SoftwareApplication node shape.
 import { pricingOffersLd, softwareApplicationLd as softwareAppNode } from "./offer-ld.mjs";
+// Service-area seam. Same shared dependency-free .mjs pattern: collectServiceAreas walks the
+// config's serviceArea sections (one collector, so the @graph and llms.txt cannot drift from
+// the visible section), and areaServedLd is the back-compat seam. With no serviceArea sections
+// it reproduces the legacy single-Place object byte-for-byte (key order included); structured
+// areas become one Place per area. Unit-tested in plain Node (tools/service-area.test.mjs).
+import { areaServedLd, collectServiceAreas } from "./area-ld.mjs";
 
 // JSON-LD (schema.org) builders. Kept as plain objects; rendered by <JsonLd>.
 //
@@ -49,7 +55,11 @@ function absUrl(site: SiteConfig, path: string): string {
 
 // v0.5.0: absolute canonical URL for a page path, from seo.domain. Undefined when the
 // site has no domain configured (a preview build), so routes emit no canonical rather
-// than a wrong one. Shapes match app/sitemap.ts: no trailing slash except the root.
+// than a wrong one. For the root path ("/") this literally returns base + "/"; feedback
+// item #22 flagged that as a docs nit, not a bug: Next 15's metadata resolver strips the
+// trailing slash when it renders <link rel="canonical"> (trailingSlash is off, the
+// default), so the SERVED canonical is always slashless, matching every other rendered
+// canonical and app/sitemap.ts's home entry (which never emits a trailing slash either).
 export function canonicalUrl(site: SiteConfig, path: string): string | undefined {
   const base = siteUrl(site);
   if (!base) return undefined;
@@ -86,7 +96,8 @@ export function organizationLd(site: SiteConfig) {
       ...(loc.postalCode ? { postalCode: loc.postalCode } : {}),
     };
   }
-  if (b.serviceArea) ld.areaServed = { "@type": "Place", name: b.serviceArea };
+  const areaServed = areaServedLd(b.serviceArea, collectServiceAreas(site));
+  if (areaServed) ld.areaServed = areaServed;
   // AggregateRating / Review for the business, only when the config supplies a REAL
   // rating (claims-walled in withRatingLd). A business with none emits neither.
   withRatingLd(ld, b.rating, b.reviews);
@@ -105,7 +116,8 @@ export function serviceLd(site: SiteConfig, line: ServiceLine) {
     provider: { "@id": `${base}/#organization` },
   };
   if (line.key) ld.serviceType = line.key;
-  if (b.serviceArea) ld.areaServed = { "@type": "Place", name: b.serviceArea };
+  const areaServed = areaServedLd(b.serviceArea, collectServiceAreas(site));
+  if (areaServed) ld.areaServed = areaServed;
   return ld;
 }
 

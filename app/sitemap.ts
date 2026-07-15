@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/site.config";
 import { publishedArticles } from "@/lib/config-schema";
+import { isIndexable } from "@/lib/seo";
 
 // Provenance: lifted 2026-07-10 from KitsapComponent
 // (Kitsap Component/kitsap-store/app/sitemap.ts). That version read product URLs from
@@ -9,7 +10,15 @@ import { publishedArticles } from "@/lib/config-schema";
 //
 // v0.2.0: the blog index and every published (non-draft) article are appended, so the
 // hosted blog is discoverable. Drafts are omitted, matching their noindex.
+//
+// Feedback item #20: a not-indexable build (no domain, or seo.draft) still emitted every
+// page URL here while robots.txt disallowed everything and every page carried noindex -
+// the three surfaces disagreed. isIndexable() is the one source of truth for all three
+// (app/robots.ts, app/layout.tsx, and here); a not-indexable build now emits an EMPTY
+// sitemap instead of a domain-relative one (closing item #21 too: a relative <loc> is not
+// spec-valid XML, and there is nothing worth crawling on a build search will never index).
 export default function sitemap(): MetadataRoute.Sitemap {
+  if (!isIndexable(site)) return [];
   const base = (site.seo.domain ?? "").replace(/\/+$/, "");
   const now = new Date();
 

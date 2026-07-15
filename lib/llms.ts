@@ -1,5 +1,9 @@
 import type { Section, SiteConfig, TrustFacts } from "./config-schema";
 import { allServiceLines } from "./services";
+// Structured service areas: the SAME collector that feeds the @graph's areaServed (one
+// source, so llms.txt and the JSON-LD cannot drift). Empty for every config without a
+// serviceArea section, which leaves the Contact block byte-identical.
+import { areasLine, collectServiceAreas } from "./area-ld.mjs";
 
 // Generate llms.txt from the active site config, claims-walled: every line is a fact the
 // config supplied. Nothing is invented, inferred, or upgraded into a capability. This is
@@ -72,6 +76,10 @@ export function buildLlmsTxt(site: SiteConfig): string {
   const loc = locationLine(site);
   if (loc) p(`- Location: ${loc}`);
   if (b.hours) p(`- Hours: ${b.hours}`);
+  // Structured areas from serviceArea sections (claims-walled: config-supplied names,
+  // verbatim). Absent sections emit nothing, so existing configs are unchanged.
+  const areas = areasLine(collectServiceAreas(site));
+  if (areas) p(`- Areas served: ${areas}`);
   p("");
 
   const trustSection = firstSection(site, "trustBar");

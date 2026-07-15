@@ -29,9 +29,10 @@
 //      business is never inferred from equipment age. Brands are the real fleet values.
 //      Mod-gallery images are emitted only when a project resolves BOTH before and after.
 //   2. The BANNED-PHRASE LINT over every emitted string (alt text, captions, and article
-//      prose included): no em or en dashes, none of the four banned compliance phrases as
-//      affirmative claims, no hype, no guarantees, and code-requirement wording hedged to
-//      the authority having jurisdiction. A violation FAILS the run (non-zero exit).
+//      prose included): no em or en dashes, no exclamation marks, none of the four banned
+//      compliance phrases as affirmative claims, no hype, no guarantees, and code-requirement
+//      wording hedged to the authority having jurisdiction. A violation FAILS the run
+//      (non-zero exit).
 //   3. The CLAIMS TRACE: every emitted credential, named capability, and RESOLVED asset
 //      records the named snapshot field / source ref it came from, written to
 //      claims-trace.json alongside the config. Dropped projects are recorded too.
@@ -49,12 +50,40 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ENGINE_ROOT = resolve(HERE, "..");
 const PUBLIC_MODS_DIR = join(ENGINE_ROOT, "public", "mods");
 
+// Bind an import-supplied portal URL to a safe shape (SEC hardening FIX 6). The snapshot's
+// wiring.portalUrl lands in a public "Open the customer portal" CTA, so a hostile snapshot could
+// point it at javascript: or an attacker origin. Parse with the URL constructor, require https, and
+// - when the operator supplies an origin allowlist - require the origin to be on it. Returns the
+// normalized href, or null to drop the link. With no allowlist configured the https parse is the
+// gate (the brand-neutral engine bakes in no origin); production hydration passes the tenant's
+// approved portal origin(s) via PORTAL_ORIGIN_ALLOWLIST so a swapped link is rejected.
+/** @param {unknown} raw @param {string[]} [allowlist] @returns {string|null} */
+export function sanitizePortalUrl(raw, allowlist = []) {
+  const s = typeof raw === "string" ? raw.trim() : "";
+  if (!s) return null;
+  let u;
+  try {
+    u = new URL(s);
+  } catch {
+    return null;
+  }
+  if (u.protocol !== "https:") return null;
+  const list = Array.isArray(allowlist) ? allowlist.map((o) => String(o).trim()).filter(Boolean) : [];
+  if (list.length && !list.includes(u.origin)) return null;
+  return u.href;
+}
+
 // -----------------------------------------------------------------------------
 // The banned-phrase lint (gate 2). Runs over every string the config carries.
 // -----------------------------------------------------------------------------
 
 // Em / en / figure / horizontal-bar dashes and the Unicode minus. House rule: hyphen only.
 const DASH_RE = /[‒–—―−]/;
+
+// House voice is a flat statement, never punctuated with excitement (feedback item #36: the
+// engine-baked checkout-success page shipped "Thank you!" outside every lint's reach). One
+// exclamation mark anywhere in a string is enough to trip it.
+const EXCLAIM_RE = /!/;
 
 // The four banned compliance phrases (affirmative claims a service company must not make).
 const COMPLIANCE_RES = [
@@ -112,6 +141,7 @@ export function lintString(s) {
   if (typeof s !== "string" || s.length === 0) return [];
   const out = [];
   if (DASH_RE.test(s)) out.push({ rule: "dash", match: s.match(DASH_RE)[0] });
+  if (EXCLAIM_RE.test(s)) out.push({ rule: "exclamation", match: "!" });
   for (const { rule, re } of COMPLIANCE_RES) if (re.test(s)) out.push({ rule, match: s.match(re)[0] });
   if (GUARANTEE_RE.re.test(s)) out.push({ rule: GUARANTEE_RE.rule, match: s.match(GUARANTEE_RE.re)[0] });
   for (const { rule, re } of HYPE_RES) if (re.test(s)) out.push({ rule, match: s.match(re)[0] });
@@ -220,19 +250,31 @@ function attestedValue(cred) {
 // (spec 10.4). A b64 image over this is dropped defensively (pairing enforces it office-side).
 export const PER_IMAGE_B64_CAP = 5_000_000;
 
-const MIME_EXT = {
-  "image/jpeg": "jpg",
-  "image/jpg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/gif": "gif",
-  "image/avif": "avif",
-};
-function extForMime(mime) {
-  const m = String(mime || "").toLowerCase().trim();
-  if (MIME_EXT[m]) return MIME_EXT[m];
-  const sub = m.split("/")[1];
-  return sub && /^[a-z0-9]+$/.test(sub) ? sub : "bin";
+// Fail-closed image sniff (SEC hardening FIX 6). The extension is derived from the DECODED bytes,
+// never from an import-supplied MIME or filename, so a text/html or image/svg+xml payload (an
+// active, same-origin document) can never land in public/mods. Recognizes the raster formats the
+// gallery serves by magic bytes; anything else returns null and the caller drops the side. SVG and
+// HTML are text and match nothing here, so they are rejected by construction.
+/** @param {Buffer} b @returns {"jpg"|"png"|"webp"|"gif"|"avif"|null} */
+export function sniffImageExt(b) {
+  if (!b || b.length < 12) return null;
+  // JPEG: FF D8 FF
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg";
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 &&
+      b[4] === 0x0d && b[5] === 0x0a && b[6] === 0x1a && b[7] === 0x0a) return "png";
+  // GIF: "GIF87a" / "GIF89a"
+  if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x38 &&
+      (b[4] === 0x37 || b[4] === 0x39) && b[5] === 0x61) return "gif";
+  // WebP: "RIFF" .... "WEBP"
+  if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
+      b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return "webp";
+  // AVIF: an ISO-BMFF "ftyp" box with an "avif" / "avis" brand at bytes 8..12.
+  if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) {
+    const brand = b.slice(8, 12).toString("latin1");
+    if (brand === "avif" || brand === "avis") return "avif";
+  }
+  return null;
 }
 
 // Read a bundle asset by its stored relative src ("assets/<file>"), guarded to the bundle
@@ -268,8 +310,14 @@ function resolveSide(side, bundleDir) {
     // STORED form: bytes live in the sibling bundle assets/ dir.
     const bytes = readBundleAsset(bundleDir, side.src);
     if (!bytes) return { error: `asset file not found: ${side.src}` };
-    const file = basename(side.src);
-    if (!file) return { error: `bad asset src: ${side.src}` };
+    const base = basename(side.src);
+    if (!base) return { error: `bad asset src: ${side.src}` };
+    // Fail-closed content sniff (FIX 6): the extension comes from the decoded bytes, not the
+    // supplied filename, so an active-content file (.svg / .html) named like an image is dropped.
+    const ext = sniffImageExt(bytes);
+    if (!ext) return { error: `not a decodable raster image: ${side.src}` };
+    const stem = base.replace(/\.[^.]*$/, "") || base;
+    const file = `${stem}.${ext}`;
     return { bytes, file, engineSrc: `/mods/${file}` };
   }
 
@@ -284,7 +332,10 @@ function resolveSide(side, bundleDir) {
     return { error: "base64 decode failed" };
   }
   if (!bytes || bytes.length === 0) return { error: "empty image bytes" };
-  const ext = extForMime(side.mime);
+  // Fail-closed content sniff (FIX 6): derive the extension from the decoded bytes, not the
+  // import-supplied MIME, so a text/html or image/svg+xml transport payload is rejected here.
+  const ext = sniffImageExt(bytes);
+  if (!ext) return { error: "not a decodable raster image" };
   const hash = createHash("sha256").update(bytes).digest("hex").slice(0, 16);
   const file = `${hash}.${ext}`;
   return { bytes, file, engineSrc: `/mods/${file}` };
@@ -411,7 +462,7 @@ function mapArticle(a) {
 // -----------------------------------------------------------------------------
 
 export function hydrate(snapshot, opts = {}) {
-  const { bundleDir } = opts; // dir of snapshot.json; its sibling assets/ holds bundle images
+  const { bundleDir, portalOriginAllowlist = [] } = opts; // dir of snapshot.json; sibling assets/ holds bundle images
   const trace = []; // { configPath, kind, value, source }
   const dropped = []; // { field, kind, reason }
   const T = (configPath, kind, value, source) => trace.push({ configPath, kind, value, source });
@@ -692,7 +743,10 @@ export function hydrate(snapshot, opts = {}) {
       "The records travel with your building if you ever change companies.",
     ],
   });
-  const portalUrl = typeof wiring.portalUrl === "string" ? wiring.portalUrl.trim() : "";
+  // Bind the portal link to https (and an operator origin allowlist when supplied) before it lands
+  // in the public "Open the customer portal" CTA (SEC hardening FIX 6). A hostile snapshot pointing
+  // it at javascript: or an attacker origin is dropped here rather than rendered.
+  const portalUrl = sanitizePortalUrl(wiring.portalUrl, portalOriginAllowlist);
   if (portalUrl) {
     homeSections.push({
       type: "portalDoor",
@@ -842,12 +896,20 @@ export function hydrate(snapshot, opts = {}) {
 // literal, and the SiteConfig annotation makes tsc (via `next build`) type-check the map.
 // -----------------------------------------------------------------------------
 
+// Neutralize a value interpolated into a single-line // comment (SEC hardening FIX 6). Only a line
+// terminator breaks out of a // comment, so \u-escape CR, LF, and the Unicode line separators
+// (U+2028 / U+2029); the value then cannot inject code into the generated site.config.ts that
+// `next build` would execute.
+function oneLineCommentValue(v) {
+  return String(v == null ? "" : v).replace(/[\r\n\u2028\u2029]/g, (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"));
+}
+
 export function serializeConfig(config, meta = {}) {
   const header = [
     "// GENERATED by tools/hydrate.mjs from an approved publish-profile snapshot.",
     "// Do not edit by hand. Regenerate with: node tools/hydrate.mjs <snapshot> <outdir>",
-    `// Snapshot: ${meta.snapshotPath || "(inline)"}`,
-    `// schemaVersion ${meta.schemaVersion || "?"} | tenant ${meta.tenantSlug || "?"} | approvedAt ${meta.approvedAt || "null"}`,
+    `// Snapshot: ${oneLineCommentValue(meta.snapshotPath) || "(inline)"}`,
+    `// schemaVersion ${oneLineCommentValue(meta.schemaVersion) || "?"} | tenant ${oneLineCommentValue(meta.tenantSlug) || "?"} | approvedAt ${oneLineCommentValue(meta.approvedAt) || "null"}`,
     "//",
     "// This config was reviewed by three gates on emit: the claims wall (facts only when",
     "// proven), the banned-phrase lint (100 percent of strings), and the claims trace",
@@ -877,7 +939,10 @@ function runCli(argv) {
   // and a flat v0.3.0 object (<approvedAt>.json) - the flat form simply has no assets/ sibling,
   // so the resolver finds no images and the gallery is absent (backward-compat).
   const bundleDir = dirname(resolve(snapshotPath));
-  const { config, trace, dropped, assets } = hydrate(snapshot, { bundleDir });
+  // Operator-supplied approved portal origin(s) for the portal-link allowlist (SEC hardening FIX 6),
+  // comma-separated. Unset -> the https parse is the only gate (backward compatible).
+  const portalOriginAllowlist = (process.env.PORTAL_ORIGIN_ALLOWLIST || "").split(",").map((s) => s.trim()).filter(Boolean);
+  const { config, trace, dropped, assets } = hydrate(snapshot, { bundleDir, portalOriginAllowlist });
 
   // Gate 2: banned-phrase lint over every emitted string. Fail the run on any violation.
   const { count, violations } = lintConfig(config);

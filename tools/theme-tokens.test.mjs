@@ -47,6 +47,7 @@ const {
   metaColorFor,
   contrastRatio,
   mixHex,
+  eyebrowColorFor,
   META_LIGHT,
   META_DARK,
 } = m;
@@ -100,6 +101,51 @@ function testDeriveWcag() {
   const bl = deriveTokens(bad, "light");
   ok("a too-light brand text is clamped to AA (not passed through)", contrastRatio(bl.ink, bl.bg) >= 4.5);
   ok("the clamp actually changed the ink", bl.ink !== "#eeeeee");
+}
+
+// ================= 3b. eyebrowColorFor + the eyebrow token (feedback item #11) =================
+// --color-accent fills a CTA (btn--accent, needs to stay light/bright for its fixed dark ink)
+// AND, unclamped, colors .eyebrow text on the page bg (needs 4.5:1 AA) - one brand accent
+// rarely clears both. Real contrast-ratio math, both directions, plus proof the split is real
+// (the eyebrow token and the accent/green token can legitimately diverge).
+function testEyebrowToken() {
+  console.log("\n# eyebrowColorFor + the eyebrow token: real contrast-ratio math (feedback item #11)");
+
+  // The documented failure case: the engine's own default demo accent on white.
+  const failingAccent = "#e8a13a";
+  const before = contrastRatio(failingAccent, "#ffffff");
+  ok("the raw default accent FAILS AA as eyebrow text on white (proves the bug is real)", before < 4.5);
+  const clamped = eyebrowColorFor(failingAccent, "#ffffff", "#000000");
+  const after = contrastRatio(clamped, "#ffffff");
+  ok("eyebrowColorFor clamps it to clear AA (4.5:1)", after >= 4.5);
+  ok("eyebrowColorFor actually changed the color (not a silent passthrough)", clamped !== failingAccent);
+
+  // An accent that already clears AA is returned unchanged (no-op; never darkens further than needed).
+  const passingAccent = "#7a3d00";
+  ok("a pre-flight sanity check: this accent already clears AA", contrastRatio(passingAccent, "#ffffff") >= 4.5);
+  eq("eyebrowColorFor is a no-op on an already-AA accent", eyebrowColorFor(passingAccent, "#ffffff", "#000000"), passingAccent);
+
+  // The token contract: present on every scalar set, bridged for the theme-enabled path.
+  ok("SCALAR_TOKEN_KEYS includes eyebrow", SCALAR_TOKEN_KEYS.includes("eyebrow"));
+  ok(
+    "ALIAS_BRIDGE maps --color-eyebrow to --rl-eyebrow",
+    ALIAS_BRIDGE.some(([alias, expr]) => alias === "--color-eyebrow" && expr === "var(--rl-eyebrow)"),
+  );
+
+  // The theme-enabled derive path: a brand whose accent fails AA as eyebrow text gets a
+  // DIFFERENT, AA-clean eyebrow token while the CTA-facing green/accent token is untouched -
+  // proof the two contexts are no longer sharing one losing value.
+  const twoColorBrand = { colors: { primary: "#1f3a5f", accent: failingAccent, bg: "#ffffff", text: "#16181d" } };
+  const light = deriveTokens(twoColorBrand, "light");
+  eq("light.green stays the raw brand accent (CTA fill untouched)", light.green, failingAccent);
+  ok("light.eyebrow differs from light.green (the split actually happened)", light.eyebrow !== light.green);
+  ok("light.eyebrow clears AA (4.5:1) on light.bg", contrastRatio(light.eyebrow, light.bg) >= 4.5);
+  // The CTA fill's own contract is unaffected by the eyebrow fix: the fixed onGreen ink still
+  // reads on the fill (a regression here would mean the eyebrow fix broke the button).
+  ok("btn--accent ink (onGreen) still clears AA on the fill", contrastRatio(light.onGreen, light.green) >= 4.5);
+
+  const dark = deriveTokens(twoColorBrand, "dark");
+  ok("dark.eyebrow clears AA (4.5:1) on dark.bg", contrastRatio(dark.eyebrow, dark.bg) >= 4.5);
 }
 
 // ================= 4. resolveTheme: verbatim palette + hybrid derive =================
@@ -185,14 +231,91 @@ function testGlobalsParity() {
   ok("the 44px nav toggle is styled", /\.theme-btn\s*\{/.test(css) && css.includes("width: 44px"));
 }
 
+// ================= 8b. HERO-GHOST CONTRAST: the light-theme empty-button regression =================
+// Production bug (2026-07-14): .btn--ghost's text is var(--color-primary), and the hero's own
+// fill is ALSO var(--color-primary) (by design, dark-green-in-light-theme) - so a ghost CTA in
+// the hero rendered text-on-identical-fill and vanished (1:1 contrast; only the border showed,
+// reading as an empty outlined rectangle). Dark theme was fine because its hero goes transparent.
+// This guards BOTH halves structurally (the override exists, scoped correctly) AND numerically
+// (the actual resulting contrast ratio clears WCAG AA), so a future edit that drops or re-scopes
+// either rule fails loudly instead of shipping invisible hero buttons again.
+function testHeroGhostContrast() {
+  console.log("\n# hero .btn--ghost contrast: light-theme empty-button regression (2026-07-14)");
+  const css = readFileSync(join(ROOT, "app", "globals.css"), "utf8");
+
+  // --- structural: the fix is present and scoped where it needs to be ---
+  ok(
+    "base .hero .btn--ghost overrides the text color (not left on --color-primary)",
+    /\.hero \.btn--ghost\s*\{\s*color:\s*#fff/.test(css),
+  );
+  ok(
+    "dark theme reverts .hero .btn--ghost back to the theme green (hero is transparent there)",
+    /:root\[data-theme="dark"\]\s*\.hero\s*\.btn--ghost\s*\{\s*color:\s*var\(--color-primary\)/.test(css),
+  );
+  // The revert must be scoped to dark specifically, not bare - a bare re-revert of
+  // .hero .btn--ghost back to var(--color-primary) would fight the light-theme fix above and
+  // reintroduce the bug for every theme-enabled site. Walk every actual RULE line (selector +
+  // "{" on the same line, so a prose comment merely mentioning the selector does not count) that
+  // declares the ".hero .btn--ghost" selector and check what precedes it on that line.
+  const heroGhostRuleLines = css
+    .split("\n")
+    .filter((line) => line.includes(".hero .btn--ghost") && line.includes("{") && !line.trimStart().startsWith("/*") && !line.trimStart().startsWith("*"));
+  eq("exactly two .hero .btn--ghost rule lines (base + dark revert)", heroGhostRuleLines.length, 2);
+  const bareLines = heroGhostRuleLines.filter((line) => !line.trimStart().startsWith(':root[data-theme="dark"]'));
+  eq("only the base (color:#fff) rule is unscoped; the var(--color-primary) one is dark-only", bareLines.length, 1);
+  ok("the one unscoped line is the white-text fix, not the primary-color revert", bareLines[0]?.includes("color: #fff"));
+
+  // --- numeric: prove the OLD behavior actually failed, and the NEW behavior actually clears AA ---
+  // RiseLynk's real, shipped light-theme palette (theme.palette.light in website/site/site.config.ts;
+  // byte-matched to design.config.json) - the exact values behind the reported screenshot.
+  const heroFillLight = "#0c6b52"; // == theme.palette.light.green == the hero's --color-primary fill
+  ok(
+    "OLD behavior really was invisible (proves the bug is real)",
+    contrastRatio(heroFillLight, heroFillLight) < 1.01,
+  );
+  ok(
+    "NEW hero-ghost text (#fff) clears WCAG AA (4.5:1) on the real light hero fill",
+    contrastRatio("#ffffff", heroFillLight) >= 4.5,
+  );
+  // The border was never touched by this fix (only the text was broken - the border already
+  // read fine, per the screenshot's "empty outline"). Pin that it still clears the WCAG 1.4.11
+  // non-text (UI component) 3:1 threshold, so a future edit can't silently break it either.
+  const heroGhostBorderLight = "#e4e7e1"; // theme.palette.light.line (the untouched --line value)
+  ok(
+    "the untouched light-theme ghost border still clears the 3:1 non-text threshold",
+    contrastRatio(heroGhostBorderLight, heroFillLight) >= 3,
+  );
+
+  // Generalize past the one pinned brand: any brand run through deriveTokens (the zero-config
+  // path every non-RiseLynk site without an explicit palette uses) must ALSO clear AA, since the
+  // fix is a flat #fff, not a per-brand derived value (matches the pre-existing .hero h1 / .hero
+  // .lead invariant, which already assumes the brand primary is dark enough to host white text).
+  const derivedLight = deriveTokens(BRAND, "light");
+  ok(
+    "NEW hero-ghost text (#fff) also clears AA on the generic derived-brand light fill",
+    contrastRatio("#ffffff", derivedLight.green) >= 4.5,
+  );
+
+  // Dark theme is unaffected by this fix (hero is transparent there); pin that the revert still
+  // reads fine against the real dark backdrop, so a future edit can't silently regress dark too.
+  const heroGhostTextDark = "#5dcaa5"; // theme.palette.dark.green
+  const darkBackdrop = "#0f1412"; // theme.palette.dark.bg (what the transparent hero shows through)
+  ok(
+    "dark theme's (unchanged) hero-ghost text still clears AA on the real dark backdrop",
+    contrastRatio(heroGhostTextDark, darkBackdrop) >= 4.5,
+  );
+}
+
 testColorMath();
 testDeriveAnchors();
 testDeriveWcag();
+testEyebrowToken();
 testResolve();
 testSheet();
 testScripts();
 testSsrAndMeta();
 testGlobalsParity();
+testHeroGhostContrast();
 
 // ================= 9. R5.1 group tokens: glass / shadows / status =================
 function testGroupTokens() {

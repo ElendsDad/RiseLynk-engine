@@ -105,10 +105,10 @@ export const site: SiteConfig = {
           subheading: "What we do",
           heading: "Handyman and seasonal work",
           items: [
-            { icon: "*", title: "Repairs", body: "Doors, drywall, fixtures, and the small fixes that pile up." },
-            { icon: "*", title: "Assembly and mounting", body: "Furniture, shelving, and TVs mounted safely." },
-            { icon: "*", title: "Seasonal", body: "Gutter clearing, weather sealing, and yard cleanup." },
-            { icon: "*", title: "Small projects", body: "A short punch list handled in one visit." },
+            { iconName: "wrench", title: "Repairs", body: "Doors, drywall, fixtures, and the small fixes that pile up." },
+            { iconName: "check", title: "Assembly and mounting", body: "Furniture, shelving, and TVs mounted safely." },
+            { iconName: "calendar", title: "Seasonal", body: "Gutter clearing, weather sealing, and yard cleanup." },
+            { iconName: "clock", title: "Small projects", body: "A short punch list handled in one visit." },
           ],
         },
         {
@@ -139,12 +139,12 @@ export const site: SiteConfig = {
           heading: "Our services",
           body: "Honest quotes and tidy work. If we cannot help, we will tell you up front.",
           items: [
-            { icon: "*", title: "Repairs", body: "Doors, drywall, fixtures, and general fixes." },
-            { icon: "*", title: "Assembly and mounting", body: "Flat-pack furniture, shelving, and TV mounts." },
-            { icon: "*", title: "Seasonal", body: "Gutters, weather sealing, and cleanup." },
-            { icon: "*", title: "Small projects", body: "A batch of small tasks in a single visit." },
-            { icon: "*", title: "Odd jobs", body: "The one-off task nobody else wants to book." },
-            { icon: "*", title: "Maintenance visits", body: "A regular check to catch small problems early." },
+            { iconName: "wrench", title: "Repairs", body: "Doors, drywall, fixtures, and general fixes." },
+            { iconName: "check", title: "Assembly and mounting", body: "Flat-pack furniture, shelving, and TV mounts." },
+            { iconName: "calendar", title: "Seasonal", body: "Gutters, weather sealing, and cleanup." },
+            { iconName: "clock", title: "Small projects", body: "A batch of small tasks in a single visit." },
+            { iconName: "wrench", title: "Odd jobs", body: "The one-off task nobody else wants to book." },
+            { iconName: "shield", title: "Maintenance visits", body: "A regular check to catch small problems early." },
           ],
         },
         {

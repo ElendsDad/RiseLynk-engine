@@ -114,6 +114,13 @@ function ClassicLeadForm({ section }: { section: Section }) {
             </div>
           ) : null}
 
+          {fields.includes("building") ? (
+            <div className="field">
+              <label htmlFor="lf-building">Building or address</label>
+              <input id="lf-building" name="building" autoComplete="street-address" />
+            </div>
+          ) : null}
+
           {fields.includes("message") ? (
             <div className="field field--full">
               <label htmlFor="lf-message">Project details</label>

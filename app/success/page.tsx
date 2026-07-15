@@ -17,7 +17,7 @@ export default async function SuccessPage({
   return (
     <section className="section">
       <div className="container" style={{ maxWidth: "640px", textAlign: "center" }}>
-        <h1>Thank you!</h1>
+        <h1>Thank you.</h1>
         <p className="lead" style={{ marginInline: "auto" }}>
           {isLead
             ? "Your request came through. A real person reads every one and will be in touch shortly."

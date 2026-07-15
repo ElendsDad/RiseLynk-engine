@@ -1,4 +1,5 @@
 import type { Section } from "@/lib/config-schema";
+import Icon from "@/components/Icon";
 
 // The feature (services) card grid. Additive treatments per FeatureItem: an optional mono BADGE
 // (e.g. "SOON"), a FLAGSHIP variant (full-row span + accent left edge), and a site-supplied
@@ -20,9 +21,20 @@ export default function Services({ section }: { section: Section }) {
             const inner = (
               <>
                 {it.badge ? <span className="card__badge">{it.badge}</span> : null}
-                {it.icon ? <div className="icon" aria-hidden="true">{it.icon}</div> : null}
+                {it.iconName ? (
+                  <div className="icon icon--builtin" aria-hidden="true">
+                    <Icon name={it.iconName} />
+                  </div>
+                ) : it.icon ? (
+                  <div className="icon" aria-hidden="true">{it.icon}</div>
+                ) : null}
                 <h3>{it.title}</h3>
                 <p>{it.body}</p>
+                {it.href ? (
+                  <a className="svc-card__link" href={it.href}>
+                    Learn more
+                  </a>
+                ) : null}
               </>
             );
             return (

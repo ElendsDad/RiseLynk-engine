@@ -37,7 +37,10 @@ export type SectionType =
   | "records" // records-transparency, owner language
   | "modGallery" // modernization before/after gallery
   // --- R5 (v0.12) design-system structural craft ---
-  | "scrollNarrative"; // pinned scroll-narrative that degrades to a static step timeline
+  | "scrollNarrative" // pinned scroll-narrative that degrades to a static step timeline
+  // --- local-trades conversion batch ---
+  | "serviceArea" // visible service-area list; its areas also feed the areaServed JSON-LD and llms.txt
+  | "contentGate"; // teaser + lead form that reveals a config-supplied asset on an accepted lead
 
 export type Archetype = "brochure" | "elevator-contractor" | "software";
 
@@ -233,6 +236,11 @@ export interface FeatureItem {
   title: string;
   body: string;
   icon?: string;
+  // Built-in icon set (feedback-v0.5.0 item 12, cosmetic): a name from the small,
+  // brand-neutral SVG set in lib/icons.mjs (ICON_NAMES), rendered instead of the literal
+  // `icon` glyph. Additive and default OFF; an unknown name renders nothing (fail-safe),
+  // never a broken icon. Takes precedence over `icon` when both are set.
+  iconName?: string;
   // Optional small mono BADGE on the card (e.g. "SOON" / "Planned"). Reuses the never-as-shipped
   // discipline: it names a planned capability, never an affirmative claim. Absent renders no badge.
   badge?: string;
@@ -245,6 +253,37 @@ export interface FeatureItem {
   // engine frames the slot and gives it a reduced-motion-safe reveal; the animation content is the
   // site's. Absent renders nothing and leaves the card single-column (back-compat).
   viz?: string;
+  // Per-service detail page link (feedback item #25). Only the elevator archetype's
+  // ServiceLine could link out before this; a brochure `services` card renders the same
+  // "Learn more" link ServiceLine already does when a site wires one up. Absent renders no
+  // link (back-compat).
+  href?: string;
+}
+
+// --- Lead-capture content gate, Phases 0-1 (docs/plans/lead-capture-content-gate.md) ---
+// Trades one genuinely valuable content asset (a maintenance checklist, a pricing guide,
+// a spec sheet) for a lead through the SAME save-first intake every other form uses
+// (/api/lead + lib/contact-intake.mjs): the lead is saved before anything else happens,
+// spam is dropped by the same honeypot and optional Turnstile, and `source` tells the
+// operator which gate produced the lead.
+// CLAIMS WALL: the teaser (the section's heading/subheading/body plus `bullets`) and the
+// asset are config-supplied copy, rendered verbatim; the engine invents nothing.
+// SOFT-GATE HONESTY NOTE (Phase 1): the asset href is present in the served markup, so a
+// view-source visitor can take it without submitting. That is acceptable for a checklist,
+// not for a secret; signed, expiring links minted on an accepted lead are Phase 3. Site
+// copy must not promise exclusivity this gate does not enforce. The unlock is also
+// component-local (no persistence, no cookie), so a reload re-gates.
+export interface ContentGateConfig {
+  id?: string; // short slug naming this gate; feeds the lead source tag ("content-gate:<id>")
+  asset: {
+    href: string; // the gated thing: an asset in public/ (or an absolute URL)
+    label?: string; // unlock button text (default "Download")
+  };
+  bullets?: string[]; // teaser bullet list rendered before the form (what the asset covers), verbatim config copy
+  fields?: ("phone" | "message")[]; // optional extra form fields; name and email are always on
+  submitLabel?: string; // default "Get the download"
+  successMessage?: string; // default "Thanks. Your download is ready below."
+  source?: string; // explicit lead source override; default "content-gate:<id>" when id is set, else "content-gate"
 }
 
 export interface Section {
@@ -278,10 +317,23 @@ export interface Section {
   items?: FeatureItem[];
   // gallery
   images?: { src: string; alt: string }[];
-  // testimonials
-  quotes?: { quote: string; author: string; role?: string }[];
-  // leadform (lead-gen)
-  fields?: ("phone" | "service" | "preferredTime" | "message")[];
+  // testimonials. A quote may carry the REAL star value its reviewer gave (claims wall,
+  // same discipline as RatingFacts: config-supplied only, never synthesized); a quote
+  // with a rating renders a star row, a quote without one renders exactly as before.
+  quotes?: { quote: string; author: string; role?: string; rating?: number }[];
+  // Live business-reviews block (local-trades conversion batch, deliverable 2). When true
+  // the testimonials section renders, after any configured quotes, the business.rating
+  // summary line with stars (only when the rating passes the ratingIsValid claims wall)
+  // and the business.reviews items as quote cards. Default OFF: a section without the
+  // flag renders byte-for-byte as before, and with no valid rating and no reviews the
+  // flag renders nothing extra. Every star value comes from config; nothing is invented.
+  showBusinessReviews?: boolean;
+  maxBusinessReviews?: number; // cap the listed business reviews (default all)
+  // leadform (lead-gen). "building" (feedback item #24: property address) reuses the SAME
+  // canonical field the elevator-contractor RequestService form already posts and
+  // lib/contact-intake.mjs already validates, labels, and emails ("Building") - no intake
+  // change needed, just exposing the existing field as a leadform opt-in.
+  fields?: ("phone" | "service" | "preferredTime" | "building" | "message")[];
   services?: string[]; // options for the "service needed" select
   submitLabel?: string;
   successMessage?: string;
@@ -352,6 +404,19 @@ export interface Section {
   records?: RecordsConfig;
   enabled?: boolean; // optional-section off-switch (modGallery/records/careers)
   projects?: Project[]; // modGallery
+
+  // --- serviceArea (local-trades conversion batch) ---
+  // The structured service-area list. Each entry is a config-supplied place name with an
+  // optional supporting note, rendered verbatim (claims wall: the engine invents no coverage).
+  // These areas ALSO feed the areaServed JSON-LD on the org and Service nodes and the llms.txt
+  // "Areas served" line via ONE collector (lib/area-ld.mjs), so the visible and machine
+  // surfaces cannot drift. Structured areas win over the legacy business.serviceArea string in
+  // the JSON-LD; a config without a serviceArea section is byte-for-byte unchanged.
+  areas?: { name: string; note?: string }[];
+
+  // contentGate: the gated asset + form surface (see ContentGateConfig above; the section's
+  // heading/subheading/body carry the visible teaser copy, as everywhere else in the engine)
+  gate?: ContentGateConfig;
 
   // --- R5 scrollNarrative ---
   // A pinned scroll-narrative (harvested structural craft, spec landing-machine-room-craft.md):

@@ -15,7 +15,7 @@
 // =============================================================================
 
 import assert from "node:assert/strict";
-import { readFileSync, mkdtempSync, existsSync, statSync, rmSync } from "node:fs";
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, existsSync, statSync, rmSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -28,6 +28,8 @@ import {
   resolveModProjects,
   writeAssets,
   isValidArticle,
+  sniffImageExt,
+  sanitizePortalUrl,
   PER_IMAGE_B64_CAP,
 } from "./hydrate.mjs";
 // v0.6.1 (feedback item 7): the blessed, stable config-lint surface. A consumer imports the
@@ -66,6 +68,8 @@ test("lint fires on every banned family (negative proof)", () => {
   const cases = [
     ["em dash", "we do it — always", "dash"],
     ["en dash", "9–10 units", "dash"],
+    ["exclamation", "Thank you!", "exclamation"],
+    ["exclamation mid-sentence", "Call now! We answer 24/7.", "exclamation"],
     ["compliant", "we keep you compliant", "banned-claim:compliant"],
     ["certified", "certified technicians", "banned-claim:certified"],
     ["inspection-ready", "inspection-ready every time", "banned-claim:inspection-ready"],
@@ -96,6 +100,7 @@ test("lint passes clean, AHJ-hedged copy (no false positives)", () => {
     "Parts are sourced across manufacturers rather than through a single brand.",
     "For a stuck elevator with someone inside, call first.",
     "We answer the phone and keep your records straight.",
+    "Thank you.",
   ];
   for (const s of clean) assert.deepEqual(lintString(s), [], `false positive on: "${s}"`);
 });
@@ -466,6 +471,88 @@ function findSection(config, type) {
 function hasSection(config, type) {
   return allSections(config).some((x) => x.type === type);
 }
+
+// -----------------------------------------------------------------------------
+// SEC hardening FIX 6: hydration / build-boundary hardening. The hydrator trusts import-supplied
+// strings and bytes at a syntactic / content-type boundary. These prove the boundary is closed:
+// no snapshot value can break out of the generated site.config.ts comment header into build-host
+// code, no non-image payload can land in public/mods as a same-origin active document, and a
+// portal link is bound to https (and an operator origin allowlist when supplied).
+// -----------------------------------------------------------------------------
+
+// A 1x1 red PNG, base64 - a genuine raster payload for the "good" side of a pairing.
+const REAL_PNG_B64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
+test("FIX 6: serializeConfig - a snapshot meta value cannot break out of the // comment header", () => {
+  // An untrusted snapshot supplies a tenantSlug carrying a line terminator plus code. Interpolated
+  // raw into a `//` header line it would break out into executable TS that `next build` then runs
+  // (CWE-94 build-host code-exec). Every header line must stay a comment.
+  const evil = 'acme";\nglobalThis.__pwned = 1;\n//';
+  const out = serializeConfig({ archetype: "elevator-contractor" }, {
+    tenantSlug: evil, snapshotPath: evil, schemaVersion: evil, approvedAt: evil,
+  });
+  const header = out.slice(0, out.indexOf("import type"));
+  for (const line of header.split("\n")) {
+    assert.ok(line === "" || line.startsWith("//"), `header line escaped the comment: ${JSON.stringify(line)}`);
+  }
+  assert.ok(!header.includes("\nglobalThis"), "the injected line terminator must be neutralized");
+});
+
+test("FIX 6: resolveModProjects - a non-image transport payload is dropped, never landed in /mods", () => {
+  // A text/html payload (active, same-origin document) offered through the inline transport form.
+  const htmlB64 = Buffer.from("<html><body><script>alert(document.domain)</script></body></html>").toString("base64");
+  const { projects, assets, dropped } = resolveModProjects(
+    [{ id: "evil-html", before: { mime: "text/html", b64: htmlB64, alt: "x" }, after: { mime: "text/html", b64: htmlB64, alt: "y" } }],
+    {},
+  );
+  assert.equal(projects.length, 0, "an active-content payload must not resolve to a gallery project");
+  assert.equal(assets.length, 0, "nothing may be written into public/mods");
+  assert.ok(dropped.some((d) => d.field === "modGallery.projects[evil-html]"), "the drop is recorded in the trace");
+});
+
+test("FIX 6: resolveModProjects - a STORED .svg asset (active content) is dropped by content sniff", () => {
+  const tmp = mkdtempSync(join(tmpdir(), "se-hydrate-svg-"));
+  mkdirSync(join(tmp, "assets"), { recursive: true });
+  writeFileSync(join(tmp, "assets", "evil.svg"), '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
+  writeFileSync(join(tmp, "assets", "ok.png"), Buffer.from(REAL_PNG_B64, "base64"));
+  const { projects, assets } = resolveModProjects(
+    [{ id: "svg", before: { src: "assets/evil.svg", alt: "x" }, after: { src: "assets/ok.png", alt: "y" } }],
+    { bundleDir: tmp },
+  );
+  rmSync(tmp, { recursive: true, force: true });
+  assert.equal(projects.length, 0, "a project with a non-raster side must drop");
+  assert.ok(!assets.some((a) => /\.svg(\?|$)/.test(a.engineSrc)), "no .svg may land in public/mods");
+});
+
+test("FIX 6: hydrate - a non-https wiring.portalUrl is dropped (no portalDoor section)", () => {
+  const snap = JSON.parse(JSON.stringify(bundle));
+  snap.wiring = { ...(snap.wiring || {}), portalUrl: "javascript:alert(document.domain)" };
+  const { config } = hydrate(snap, { bundleDir });
+  assert.equal(hasSection(config, "portalDoor"), false, "a non-https / non-parseable portalUrl must not render a portal door");
+});
+
+test("FIX 6: sniffImageExt recognizes raster formats and rejects non-images", () => {
+  assert.equal(sniffImageExt(Buffer.from(REAL_PNG_B64, "base64")), "png");
+  assert.equal(sniffImageExt(Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 16, 0x4a, 0x46, 0x49, 0x46, 0, 0])), "jpg");
+  assert.equal(sniffImageExt(Buffer.from("GIF89a    ", "latin1")), "gif");
+  assert.equal(sniffImageExt(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>')), null, "svg is not a raster image");
+  assert.equal(sniffImageExt(Buffer.from("<!doctype html><script>1</script>")), null, "html is not an image");
+  assert.equal(sniffImageExt(Buffer.from("plain text payload padded out")), null);
+  assert.equal(sniffImageExt(Buffer.from([0, 1, 2])), null, "too short to be any image");
+});
+
+test("FIX 6: sanitizePortalUrl - https-only, parseable, with an optional origin allowlist", () => {
+  assert.equal(sanitizePortalUrl("https://portal.summit-vertical.example/"), "https://portal.summit-vertical.example/");
+  assert.equal(sanitizePortalUrl("  https://ok.example/x  "), "https://ok.example/x", "trims surrounding whitespace");
+  assert.equal(sanitizePortalUrl("http://evil.example/"), null, "http is rejected");
+  assert.equal(sanitizePortalUrl("javascript:alert(1)"), null, "javascript: is rejected");
+  assert.equal(sanitizePortalUrl("not a url"), null, "unparseable is rejected");
+  assert.equal(sanitizePortalUrl(""), null);
+  assert.equal(sanitizePortalUrl(42), null, "non-string is rejected");
+  assert.equal(sanitizePortalUrl("https://good.example/portal", ["https://good.example"]), "https://good.example/portal");
+  assert.equal(sanitizePortalUrl("https://evil.example/portal", ["https://good.example"]), null, "an off-allowlist origin is dropped");
+});
 
 let failed = 0;
 for (const { name, fn } of tests) {

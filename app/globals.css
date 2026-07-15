@@ -3,6 +3,12 @@
 :root {
   --color-primary: #1f3a5f;
   --color-accent: #e8a13a;
+  /* feedback item #11: a separate, WCAG-AA-clamped eyebrow ink (lib/theme.ts eyebrowColorFor,
+     lib/theme-tokens.mjs on the theme-enabled path); --color-accent alone cannot pass AA as
+     both a CTA fill and small eyebrow text, so this stopped double-duty. Build-time inline style
+     always sets this from the real brand accent; this static value is only the pre-hydration
+     fallback for the engine's own default demo colors above. */
+  --color-eyebrow: #865e22;
   --color-bg: #ffffff;
   --color-text: #16181d;
   --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -52,7 +58,7 @@ p { margin: 0 0 1rem; }
 .container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: 1.25rem; }
 .section { padding-block: var(--space); }
 .section--surface { background: var(--surface); }
-.eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.8rem; font-weight: 700; color: var(--color-accent); margin-bottom: 0.5rem; }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.8rem; font-weight: 700; color: var(--color-eyebrow, var(--color-accent)); margin-bottom: 0.5rem; }
 .lead { font-size: 1.15rem; color: var(--muted); max-width: 60ch; }
 
 /* Buttons */
@@ -93,11 +99,28 @@ p { margin: 0 0 1rem; }
 .hero h1 { color: #fff; }
 .hero .lead { color: rgba(255,255,255,0.9); }
 .hero__cta { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1.5rem; }
+/* Ghost CTAs (.btn--ghost above) set their text to var(--color-primary) - fine on the page
+   bg, but the hero fills with that SAME var(--color-primary), so a ghost button in the hero
+   goes text-on-identical-fill and disappears (1:1 contrast; the border alone stays visible
+   at a fine 5.19:1 against --line, unaffected here, which is exactly the reported "empty
+   outline" bug). Match the sibling hero text instead (.hero h1 / .hero .lead are already
+   plain white on this fill). Dark theme's hero goes transparent (see
+   :root[data-theme="dark"] .hero below), so it reverts this back to the theme green there,
+   where it already reads fine against the dark backdrop. */
+.hero .btn--ghost { color: #fff; }
+/* The hero eyebrow sits on the dark --color-primary fill, not the page bg the AA-clamped
+   --color-eyebrow token targets (feedback item #11), so it keeps the raw brand accent here,
+   matching every other on-hero accent use (.hero__proof i and friends). */
+.hero .eyebrow { color: var(--color-accent); }
 
 /* Grid of cards (services) */
 .grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .card { background: var(--color-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.5rem; }
 .card .icon { font-size: 1.6rem; }
+/* Built-in icon set (feedback item #12): the same frame slot, sized and colored for an
+   inline SVG (components/Icon.tsx) instead of the literal glyph string. */
+.card .icon--builtin { color: var(--color-accent); }
+.card .icon--builtin svg { display: block; width: 1.6rem; height: 1.6rem; }
 .card h3 { margin-top: 0.6rem; }
 .card p { color: var(--muted); margin: 0; }
 
@@ -446,6 +469,12 @@ p { margin: 0 0 1rem; }
    /--color-accent to the light dark-mode green and --color-text to the light ink, so links,
    prices, eyebrows and the focus ring stay legible dark-on-light with no extra re-light. */
 :root[data-theme="dark"] .hero { background: transparent; color: #fff; }
+/* The light-theme hero-ghost fix above (.hero .btn--ghost { color: #fff; }) targets the
+   solid-primary hero fill; dark's hero is transparent (line above), so that same white text
+   would go invisible on the near-black machine-room backdrop instead. Revert the text to the
+   theme green, which already clears contrast there (unaffected by this fix); the border was
+   never touched, so it needs no revert. */
+:root[data-theme="dark"] .hero .btn--ghost { color: var(--color-primary); }
 :root[data-theme="dark"] .site-header { background: color-mix(in srgb, #0b0e10 68%, transparent); }
 
 /* The 44px nav moon/sun toggle. Brand-neutral: it themes off the same tokens as the rest of

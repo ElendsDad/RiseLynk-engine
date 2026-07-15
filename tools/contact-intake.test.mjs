@@ -32,7 +32,7 @@ const ROOT = join(HERE, "..");
 const MODULE_PATH = join(ROOT, "lib", "contact-intake.mjs");
 
 const mod = await import("file://" + MODULE_PATH);
-const { esc, submit, getSaver, getSender, rateOk, verifyTurnstile, foldExtras } = mod;
+const { esc, submit, getSaver, getSender, rateOk, clientIp, verifyTurnstile, turnstileConfig, foldExtras, autoReplyRecipient } = mod;
 
 let passed = 0, failed = 0;
 const ok = (name, cond) => { if (cond) { passed++; console.log("  ok  " + name); } else { failed++; console.log("FAIL  " + name); } };
@@ -229,7 +229,7 @@ async function testHoneypot() {
 
 // ================= 11. Turnstile verify (feature-backlog #4) =================
 async function testTurnstile() {
-  console.log("\n# Turnstile verify: off by default, fail-open on outage, closed on a real fail");
+  console.log("\n# Turnstile verify: off (no secret) fails open; configured fails closed on any negative or unverifiable signal");
   // No secret configured -> the feature is off; never block (fail open).
   const off = await verifyTurnstile({ token: "anything", secret: "" });
   eq("no secret -> allowed (feature off)", off.ok, true);
@@ -255,13 +255,67 @@ async function testTurnstile() {
   eq("invalid token -> blocked", fail.ok, false);
   eq("invalid token -> verification_failed", fail.reason, "verification_failed");
 
-  // Cloudflare unreachable -> fail OPEN, so a verify outage never eats a real lead.
+  // Configured (secret set) + Cloudflare unreachable -> fail CLOSED (SEC hardening FIX 4). A
+  // rendered challenge must imply enforcement, so a verify outage rejects a submission rather
+  // than letting unverified traffic through.
   const outage = await verifyTurnstile({
     token: "tok", secret: "s3cret",
     fetchImpl: async () => { throw new Error("network down"); },
   });
-  eq("verify outage -> allowed (fail open)", outage.ok, true);
-  eq("verify outage -> marked skipped", outage.skipped, true);
+  eq("configured verify outage -> BLOCKED (fail closed)", outage.ok, false);
+  eq("configured verify outage -> verify_error", outage.reason, "verify_error");
+  ok("configured verify outage -> NOT marked skipped", outage.skipped === undefined);
+
+  // Configured but no fetch impl at all to reach Cloudflare -> also fail CLOSED (cannot verify).
+  const savedFetch = globalThis.fetch;
+  const savedEngineFetch = globalThis.__ENGINE_FETCH;
+  delete globalThis.__ENGINE_FETCH;
+  globalThis.fetch = undefined;
+  const noFetch = await verifyTurnstile({ token: "tok", secret: "s3cret" });
+  globalThis.fetch = savedFetch;
+  if (savedEngineFetch) globalThis.__ENGINE_FETCH = savedEngineFetch;
+  eq("configured + no fetch impl -> BLOCKED (fail closed)", noFetch.ok, false);
+  eq("configured + no fetch -> no_fetch", noFetch.reason, "no_fetch");
+}
+
+// ========= 11b. Turnstile config XOR guard (SEC hardening FIX 4) =========
+// A rendered widget (siteKey) and server enforcement (secret) must be all-or-nothing. A
+// one-sided deploy is a misconfiguration the route rejects with a 503, so a visible CAPTCHA
+// always implies real server enforcement and a held secret always has a widget feeding it.
+function testTurnstileConfigXor() {
+  console.log("\n# turnstileConfig XOR: a one-sided widget/secret deploy is a misconfig");
+  const both = turnstileConfig({ siteKey: "0xSITEKEY", secret: "s3cret" });
+  eq("siteKey + secret -> ok", both.ok, true);
+  eq("siteKey + secret -> enforced", both.enforced, true);
+
+  const neither = turnstileConfig({ siteKey: "", secret: "" });
+  eq("neither -> ok (unconfigured brochure default)", neither.ok, true);
+  eq("neither -> not enforced", neither.enforced, false);
+
+  const keyOnly = turnstileConfig({ siteKey: "0xSITEKEY", secret: "" });
+  eq("siteKey without secret -> REJECTED", keyOnly.ok, false);
+  eq("siteKey without secret -> not enforced", keyOnly.enforced, false);
+  eq("siteKey without secret -> turnstile_misconfig", keyOnly.reason, "turnstile_misconfig");
+
+  const secretOnly = turnstileConfig({ siteKey: "", secret: "s3cret" });
+  eq("secret without siteKey -> REJECTED", secretOnly.ok, false);
+  eq("secret without siteKey -> turnstile_misconfig", secretOnly.reason, "turnstile_misconfig");
+
+  // Whitespace-only values are trimmed to absent, so blanks never fake half a config.
+  const blankKey = turnstileConfig({ siteKey: "   ", secret: "s3cret" });
+  eq("whitespace siteKey counts as absent -> REJECTED", blankKey.ok, false);
+}
+
+// ========= 11c. an unconfigured site is unaffected by FIX 4 =========
+async function testUnconfiguredUnaffected() {
+  console.log("\n# an unconfigured site (no secret) still fails OPEN, unchanged by FIX 4");
+  const off = await verifyTurnstile({ token: "anything", secret: "" });
+  eq("no secret -> allowed", off.ok, true);
+  eq("no secret -> skipped", off.skipped, true);
+  // turnstileConfig reports the unconfigured site as ok + not enforced, so the route never
+  // reaches verifyTurnstile at all: FIX 4 changes nothing for a brochure site.
+  const cfg = turnstileConfig({ siteKey: "", secret: "" });
+  ok("unconfigured -> route does not enforce", cfg.ok === true && cfg.enforced === false);
 }
 
 // ========= 12. modal rich fields fold into the save-first intake =========
@@ -327,6 +381,108 @@ async function testNoJsSubmitSaves() {
   eq("no-JS source default applied", spy.saved[0].source, "website-lead");
 }
 
+// ===== 13. autoresponder recipient + spam gate (FIX 3, SEC hardening v0.18.0) =====
+async function testAutoresponderGate() {
+  console.log("");
+  console.log("# lead autoresponder: gated on a non-spam accept, sent only to the validated recipient");
+  const ar = { subject: "Thanks", body: "We got your message." };
+  const fakes = { save: async () => ({ saved: true }), send: async () => true };
+
+  // A honeypot/spam submission (submit returns spam:true) must NEVER be eligible for an
+  // autoresponder, even though it returns ok:true. The old route sent to raw body.email on r.ok
+  // alone, so a bot could make the site email an arbitrary address (reflection / open relay).
+  const spam = await submit({
+    body: { name: "Bot", email: "bot@spam.com", message: "buy", website: "http://trap" },
+    save: fakes.save, send: fakes.send, to: TO, from: FROM,
+  });
+  eq("spam submit flags spam", spam.spam, true);
+  ok("spam submit yields NO autoresponder recipient", autoReplyRecipient(spam, ar) === null);
+
+  // A clean accepted lead: the recipient is the submit()-validated + normalized address
+  // (r.autoReplyTo), NOT a raw body value. Surrounding whitespace is trimmed away.
+  const clean = await submit({
+    body: { name: "Real", email: "  real@person.com  ", message: "quote please" },
+    save: fakes.save, send: fakes.send, to: TO, from: FROM,
+  });
+  eq("clean submit is accepted", clean.ok, true);
+  eq("clean submit is not flagged spam", clean.spam, undefined);
+  eq("submit returns the validated recipient", clean.autoReplyTo, "real@person.com");
+  eq("autoresponder targets the validated recipient", autoReplyRecipient(clean, ar), "real@person.com");
+
+  // No autoReply configured -> never send, even on a clean accept.
+  ok("no autoReply configured -> no recipient", autoReplyRecipient(clean, undefined) === null);
+
+  // A rejected submission (bad email) is not ok -> no autoresponder.
+  const bad = await submit({
+    body: { name: "X", email: "not-an-email", message: "hi" },
+    save: fakes.save, send: fakes.send, to: TO, from: FROM,
+  });
+  eq("bad email rejected", bad.ok, false);
+  ok("rejected submit -> no recipient", autoReplyRecipient(bad, ar) === null);
+}
+
+// ===== 14. shared atomic rate limiter (FIX 2, SEC hardening) =====
+// The brochure limiter was a module-local Map keyed by bucket + ip only: per-serverless-isolate
+// (so 10/hr/IP was really 10 times the isolate count) and tenant-blind (two sites at one shared
+// IP collided in one bucket). FIX 2 keys by tenant + bucket + trusted-IP and backs the count with
+// an injectable shared atomic store, so a fleet deployment enforces one global limit. clientIp()
+// is the single trusted-IP derivation both routes adopt.
+
+function testClientIp() {
+  console.log("\n# clientIp: prefer the platform-trusted single IP over a spoofable XFF list");
+  // An attacker prepends a fake leftmost entry to x-forwarded-for. The trusted derivation prefers
+  // x-real-ip (set by the platform edge), so the spoof never becomes the rate-limit key.
+  const h = new Map([
+    ["x-forwarded-for", "9.9.9.9, 203.0.113.7"],
+    ["x-real-ip", "203.0.113.7"],
+  ]);
+  const headers = { get: (k) => (h.has(k) ? h.get(k) : null) };
+  eq("prefers x-real-ip over spoofed XFF leftmost", clientIp(headers), "203.0.113.7");
+  // No x-real-ip -> fall back to the leftmost XFF entry, trimmed.
+  const xffOnly = { get: (k) => (k === "x-forwarded-for" ? " 198.51.100.4 , 10.0.0.1 " : null) };
+  eq("falls back to leftmost XFF, trimmed", clientIp(xffOnly), "198.51.100.4");
+  eq("no headers -> empty string", clientIp({ get: () => null }), "");
+}
+
+async function testRateLimiterSharedStore() {
+  console.log("\n# rateOk is backed by an injectable shared atomic store (not per-isolate memory)");
+  // A fake shared atomic store: one counter map that every 'isolate' consults. The pre-FIX limiter
+  // ignored any injected store (the count lived in a module-local Map), so this hit never landed
+  // there. FIX 2 threads the store through, so the hit is recorded and the tenant-scoped key is
+  // visible to the store.
+  const seen = [];
+  const counts = new Map();
+  const store = {
+    async hit(key, windowSecs) {
+      seen.push({ key, windowSecs });
+      const n = (counts.get(key) || 0) + 1;
+      counts.set(key, n);
+      return n;
+    },
+  };
+  const base = { ip: "203.0.113.9", tenant: "alpha.example", bucket: "contact", max: 3, windowSecs: 3600, store };
+  const r1 = await rateOk(base);
+  ok("shared store received the hit (ignored by the pre-FIX limiter)", seen.length === 1);
+  ok("the store key is tenant + bucket scoped", seen.length === 1 && seen[0].key.includes("alpha.example") && seen[0].key.includes("contact"));
+  ok("the window is passed to the store", seen.length === 1 && seen[0].windowSecs === 3600);
+  await rateOk(base); await rateOk(base); // counts now at 3 (== max) -> still allowed
+  const r4 = await rateOk(base);          // 4th -> over max -> blocked by the shared count
+  ok("within max is allowed", r1 === true);
+  ok("over max is blocked by the shared count", r4 === false);
+}
+
+async function testRateLimiterTenantKeyed() {
+  console.log("\n# rateOk keys by tenant: two sites at one shared IP do not share a bucket");
+  // Uses the default in-process store. Tenant A exhausts its window; tenant B at the SAME IP must
+  // still be allowed. The pre-FIX key was bucket + ip only, so B inherited A's exhausted bucket.
+  const ip = "198.51.100.77";
+  for (let i = 0; i < 10; i++) await rateOk({ ip, tenant: "site-a.example", bucket: "contact", max: 10, windowSecs: 3600 });
+  const aBlocked = await rateOk({ ip, tenant: "site-a.example", bucket: "contact", max: 10, windowSecs: 3600 });
+  const bAllowed = await rateOk({ ip, tenant: "site-b.example", bucket: "contact", max: 10, windowSecs: 3600 });
+  ok("tenant A is blocked after exhausting its own window", aBlocked === false);
+  ok("tenant B at the same IP is independent (allowed)", bAllowed === true);
+}
+
 // ---- run ----
 testEsc();
 await testSaveFirstNeverDrop();
@@ -338,10 +494,16 @@ await testSeams();
 await testRateOpen();
 await testHoneypot();
 await testTurnstile();
+testTurnstileConfigXor();
+await testUnconfiguredUnaffected();
 testNoLiterals();
 testFoldExtras();
 await testModalFieldsFoldIntoIntake();
 await testNoJsSubmitSaves();
+await testAutoresponderGate();
+testClientIp();
+await testRateLimiterSharedStore();
+await testRateLimiterTenantKeyed();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

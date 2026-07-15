@@ -26,6 +26,10 @@ import Records from "@/components/sections/Records";
 import ModGallery from "@/components/sections/ModGallery";
 // R5 design-system structural craft
 import ScrollNarrative from "@/components/sections/ScrollNarrative";
+// Local-trades conversion batch
+import ServiceArea from "@/components/sections/ServiceArea";
+// Lead-capture content gate (Phases 0-1)
+import ContentGate from "@/components/ContentGate";
 
 const MAP: Record<SectionType, ComponentType<{ section: Section }>> = {
   hero: Hero,
@@ -49,6 +53,8 @@ const MAP: Record<SectionType, ComponentType<{ section: Section }>> = {
   records: Records,
   modGallery: ModGallery,
   scrollNarrative: ScrollNarrative,
+  serviceArea: ServiceArea,
+  contentGate: ContentGate,
 };
 
 export default function SectionRenderer({ sections }: { sections: Section[] }) {

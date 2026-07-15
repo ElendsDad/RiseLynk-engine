@@ -11,10 +11,13 @@ function escapeHtml(s: string): string {
     .replace(/>/g, "&gt;");
 }
 
-// Inline: run on already-escaped text. Links first, then bold.
+// Inline: run on already-escaped text. Links first, then bold. The link destination excludes
+// '"' from both character classes so a quote can never break out of the href attribute, and any
+// residual quote is entity-encoded to &quot; before the anchor is built (defense in depth, since
+// this output is fed to dangerouslySetInnerHTML).
 function inline(s: string): string {
   return s
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)/g, '<a href="$2">$1</a>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)"]+|\/[^\s)"]*)\)/g, (_m, text: string, dest: string) => `<a href="${dest.replace(/"/g, "&quot;")}">${text}</a>`)
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 }
 

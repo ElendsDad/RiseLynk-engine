@@ -12,6 +12,25 @@ Status: FOR FOUNDER APPROVAL. Owner: integrator. Date: 2026-07-12.
 > redeploy the same preview alias, founder re-judges side by side. The live site keeps
 > serving riselynk.com throughout.
 
+> **FIDELITY PACK DELIVERED (overnight 2026-07-13).** Waves 1-3 shipped as engine releases,
+> each built GREEN + independently verified: **v0.15.0** craft+motion (glass/shadow/status
+> tokens, glassHover, gradient hot-price, scrollNarrative pinned:false, aurora/magnetic/hero),
+> **v0.15.1** vendored confetti, **v0.16.0** modal request-access form + multi-CTA hero +
+> hero-viz slot, **v0.17.0** dusk band + feature-card treatments + nav condense/progress +
+> footer legal/links + blog nav. All brand-neutral, default-off, back-compat (proven on a
+> non-green demo brand). riselynk.com re-authored on v0.17.0 with everything enabled + its
+> bespoke hero-viz art (held on `website/riselynk-on-engine` @ 9f0f2e5), rebuilt, and the
+> preview REDEPLOYED to riselynk-engine.vercel.app. DECISION (founder 2026-07-13):
+> riselynk.com rides the engine (not a bundle island). **CUTOVER COMPLETE (2026-07-13):** founder
+> judged the full-fidelity preview "looks great" and authorized the flip; riselynk.com is LIVE on
+> the engine - apex serving, indexable, full craft, `@graph` clean, verified via curl. Cutover
+> landed on RiseLynk main (merges f4b45bb/6bd8dc7 + the https:// domain fix 083f049/84be07f;
+> seo.domain=https://riselynk.com, engine.pin v0.17.0). Remaining tidy-ups (both at the
+> RiseLynk-engine Git-deploy connect): RESEND_API_KEY for server-side lead delivery + apex-primary
+> (www currently serves, apex 308s - flip in the same step). Known residual (cosmetic): the
+> bundle's page-JS 3D hero tilt + scene micro-animations and the bento feature layout are not
+> engine capabilities; the art renders flat-but-themed.
+
 > Supersedes the SEQUENCING in `phase-a-riselynk-adoption-prep.md` (written against engine
 > baseline v0.10.0 + R5-on-branch). At the v0.12.0 target R5 is shipped, G1-G4 are the remaining
 > blockers, and this doc is the actionable plan of record. The prep doc's G1-G12 gap analysis stays

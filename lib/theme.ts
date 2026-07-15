@@ -10,6 +10,7 @@ import {
   ssrThemeAttr as ssrThemeAttrImpl,
   metaColorFor,
   themeEnabled as themeEnabledImpl,
+  eyebrowColorFor,
 } from "./theme-tokens.mjs";
 
 // Maps the site's brand colors to CSS custom properties.
@@ -35,10 +36,15 @@ export function themeVars(brand: SiteConfig["brand"], theme?: ThemeConfig): CSSP
         : 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   };
   if (!themeEnabledImpl(theme)) {
+    const bg = c.bg ?? "#ffffff";
     vars["--color-primary"] = c.primary;
     vars["--color-accent"] = c.accent;
-    vars["--color-bg"] = c.bg ?? "#ffffff";
+    vars["--color-bg"] = bg;
     vars["--color-text"] = c.text ?? "#16181d";
+    // Feedback item #11: --color-accent alone cannot satisfy both the CTA fill (needs to stay
+    // light/bright) and .eyebrow text on the page bg (needs 4.5:1 AA). A separate, AA-clamped
+    // token closes the gap without touching the accent every other fill already relies on.
+    vars["--color-eyebrow"] = eyebrowColorFor(c.accent, bg, "#000000");
   }
   return vars as unknown as CSSProperties;
 }

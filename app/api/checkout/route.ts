@@ -20,8 +20,10 @@ export async function POST(req: Request) {
     }
 
     const stripe = new Stripe(secret);
-    const origin =
-      req.headers.get("origin") ?? site.seo.domain ?? "http://localhost:3000";
+    // Bind Stripe return URLs to the server's own configured domain, never the caller-supplied
+    // Origin header (SEC hardening FIX 6). Preferring the request Origin let a caller point the
+    // success / cancel redirects at an arbitrary site; the domain now comes from config only.
+    const origin = site.seo.domain ?? "http://localhost:3000";
     const currency = product.currency ?? site.commerce?.currency ?? "usd";
 
     const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = product.priceId

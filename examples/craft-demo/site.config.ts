@@ -69,9 +69,9 @@ export const site: SiteConfig = {
           subheading: "What we do",
           heading: "Our work",
           items: [
-            { icon: "*", title: "Storefronts", body: "Aluminum storefront systems, entrances, and hardware for retail and office ground floors." },
-            { icon: "*", title: "Curtain wall", body: "Unitized and stick-built curtain wall for mid-rise facades, glazed to the project drawings." },
-            { icon: "*", title: "Service and repair", body: "Board-ups, reglazing, and hardware repair, with a standing account for property managers." },
+            { iconName: "wrench", title: "Storefronts", body: "Aluminum storefront systems, entrances, and hardware for retail and office ground floors." },
+            { iconName: "shield", title: "Curtain wall", body: "Unitized and stick-built curtain wall for mid-rise facades, glazed to the project drawings." },
+            { iconName: "truck", title: "Service and repair", body: "Board-ups, reglazing, and hardware repair, with a standing account for property managers." },
           ],
         },
         {
