@@ -1,6 +1,6 @@
 {
   "name": "site-engine",
-  "version": "0.18.0",
+  "version": "0.21.0",
   "private": true,
   "license": "UNLICENSED",
   "description": "Maxwell Industries internal config-driven static-site engine. A site is a site.config.ts plus assets plus a pinned engine version.",
@@ -28,6 +28,7 @@
     "test:content-gate": "node tools/content-gate.test.mjs",
     "test:scaffold-copy": "node tools/scaffold-copy.test.mjs",
     "test:icons": "node tools/icons.test.mjs",
+    "test:social": "node tools/social-icons.test.mjs",
     "build:hydrated": "node tools/hydrate.buildcheck.mjs",
     "build:hydrated:bundle": "node tools/hydrate.buildcheck.mjs \"examples/elevator-demo/v0.4.0-bundle/summit-vertical/2026-07-10T183000Z/snapshot.json\""
   },

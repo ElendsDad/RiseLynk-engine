@@ -5,22 +5,30 @@ the discipline that governs releases. Honest by rule: shipped is shipped, backlo
 backlog. Every entry traces to the repo (a tag, `README.md`, `CLAUDE.md`, `package.json`,
 or `.gitignore`) or to the consumer feedback doc named under Backlog. Invent nothing.
 
-- Current tag: **v0.18.1** (`package.json` version `0.18.1`), **released 2026-07-13**
-  (annotated tag `v0.18.1` pushed to `origin/main` at `a3f7c5a`) - the sec-hardening pack
-  complete: FIX 2 (shared atomic rate limiter, trusted-IP + tenant keyed) and FIX 6
-  (hydration / build-boundary hardening + a baseline CSP), on top of v0.18.0 (JSON-LD
-  escape, autoresponder gate, markdown XSS, nosniff, Turnstile fail-closed + XOR guard).
-  Six sec-hardening fixes shipped 2026-07-13, every push founder-authorized, one
-  CHANGELOG section per tag.
-- Last updated: 2026-07-14.
-- In flight: nothing staged or held. Phase A is engine-side COMPLETE and riselynk.com is
-  LIVE on the engine at v0.17.0 (cutover done 2026-07-13); the sec-hardening pack
+- Current tag: **v0.20.0**, **released 2026-07-14** (HSTS baseline header + the hero
+  ghost-CTA light-mode contrast fix), live estate-wide 2026-07-15 (apex, ARK, harborview
+  demo - consumers pinned and verified). On top of v0.19.0 (Wave-2 pack) and v0.18.1
+  (sec-hardening complete: FIX 2 shared atomic rate limiter, FIX 6 hydration /
+  build-boundary hardening + baseline CSP, over v0.18.0's JSON-LD escape, autoresponder
+  gate, markdown XSS, nosniff, Turnstile fail-closed + XOR guard). Every push
+  founder-authorized, one CHANGELOG section per tag.
+- **v0.21.0 staged, not yet tagged** (2026-07-18, branch `claude/engine-polish`): baseline
+  hover/glow micro-interactions (button lift + glow, pricing-tier card elevation, nav
+  underline sweep, link color transition, all reduced-motion-guarded) plus rendering
+  `business.socials[]` (Footer icon row + Organization `sameAs`), closing the founder's
+  "no hover, no glow" pricing-page feedback. All gates green (including the new
+  `npm run test:social`), package.json bumped to 0.21.0, CHANGELOG entry written; the
+  annotated tag itself is a founder step (this session stayed on a feature branch, never
+  pushed main) - cut `git tag -a v0.21.0` after this branch merges to main.
+- Last updated: 2026-07-18.
+- In flight: nothing else staged or held. Phase A is engine-side COMPLETE and riselynk.com
+  is LIVE on the engine at v0.17.0 (cutover done 2026-07-13); the sec-hardening pack
   (v0.18.0-v0.18.1) landed on top and is default-on hardening, not a Phase-A dependency.
   Next up: the Kitsap engine-feedback-v0.12.0 asks (items 16-36), including #36, the
   engine-baked checkout-success "Thank you!" exclamation (a real engine copy-discipline
   bug to fix), and rolling the v0.17.0+ craft to the Kitsap fleet (optional, per-site;
   the gutter-services template already shipped fleet-side on v0.17.0, see
-  `kitsap-website-creation/docs/plans/roadmap.md`).
+  `maxlynk-services/docs/plans/roadmap.md`).
 - Full tour: `README.md`. Working map: `CLAUDE.md`. Per-tag ledger: `../../CHANGELOG.md`.
 
 ## Recently shipped: the fidelity pack, v0.15.0 through v0.17.0 (all released 2026-07-13)
@@ -194,13 +202,13 @@ per-tag detail lives in `../../CHANGELOG.md`, the capability-to-config matrix in
 ## Planned / backlog
 
 Open engine asks, not yet built. Summarized from the Kitsap consumption feedback docs,
-`kitsap-website-creation/docs/engine-feedback-v0.3.0.md`, `...-v0.5.0.md`, and the new
+`maxlynk-services/docs/engine-feedback-v0.3.0.md`, `...-v0.5.0.md`, and the new
 `...-v0.12.0.md` (that repo is read-only from here; this is the summary, do not edit it
 there). Each lands as an additive engine release and rolls out at the next per-site
 upgrade, per the release discipline below.
 
 - **Kitsap engine feedback v0.12.0, items 16-36** (landed 2026-07-12 in
-  `kitsap-website-creation/docs/engine-feedback-v0.12.0.md`). Triaged in the
+  `maxlynk-services/docs/engine-feedback-v0.12.0.md`). Triaged in the
   `polish/feedback-batch` pass (staged, not yet tagged/pushed): every S-sized,
   unambiguous item is built and gated; everything else is a real feature sized for its
   own dedicated additive release (the engine's own pattern: v0.10.0 for review schema,

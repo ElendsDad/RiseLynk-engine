@@ -75,7 +75,7 @@ items are ordered by current priority, so **#7 leads** now that #2 landed.
   (`lib/config-schema.ts` lines 238 to 247), and no favicon convention is wired
   (grep for `favicon`/`app/icon` finds nothing). Every client site ships Next's
   default favicon regardless of brand. This is open consumer feedback (ARK build,
-  `kitsap-website-creation/docs/engine-feedback-v0.5.0.md` item 14) that never made
+  `maxlynk-services/docs/engine-feedback-v0.5.0.md` item 14) that never made
   it onto `roadmap.md`, and the picture-to-icon intake already produces an icon set
   the engine then cannot render.
 - **Effort/risk**: very low, additive, no schema break.

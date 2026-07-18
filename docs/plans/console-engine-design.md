@@ -53,7 +53,7 @@ dynamic, DB-backed sibling, each on its own tenant project.
 
 ## 4. Reconciliation with the existing Kitsap console plan
 The existing plans (`RiseLynk/docs/specs/kitsap-console-and-wizard.md`,
-`kitsap-website-creation/docs/management-layer-phase1-plan.md`) describe one shared console app,
+`maxlynk-services/docs/management-layer-phase1-plan.md`) describe one shared console app,
 per-tenant HOSTS resolving to it (host-based resolution), with the client console riding the
 SHARED control-plane tables "keyed by tenant" (RLS-separated but co-located).
 

@@ -4,7 +4,7 @@ import type { Product } from "./config-schema";
 // Collect every product defined across all `products` sections in the active site config.
 //
 // Provenance: extracted 2026-07-10 from
-// kitsap-website-creation/templates/brochure/lib/products.ts (unchanged).
+// maxlynk-services/templates/brochure/lib/products.ts (unchanged).
 export function allProducts(): Product[] {
   const out: Product[] = [];
   for (const page of site.pages) {

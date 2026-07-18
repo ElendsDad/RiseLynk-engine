@@ -18,7 +18,7 @@ import {
 // Change the two brand colors and the whole site reskins.
 //
 // Provenance: extracted 2026-07-10 from
-// kitsap-website-creation/templates/brochure/lib/theme.ts (unchanged).
+// maxlynk-services/templates/brochure/lib/theme.ts (unchanged).
 //
 // P0 (theme layer): when a site enables the dual-theme block, the generated token sheet
 // OWNS the engine aliases (--color-bg/-text/-primary/-accent) via the alias bridge, driven

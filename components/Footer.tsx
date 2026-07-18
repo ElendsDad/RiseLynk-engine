@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { site } from "@/site.config";
 import { navPages, hrefFor } from "@/lib/config-schema";
+import { socialPlatform } from "@/lib/social-icons.mjs";
+import SocialIcon from "@/components/SocialIcon";
 
 const telHref = (p: string) => `tel:${p.replace(/[^0-9+]/g, "")}`;
 
@@ -13,6 +15,10 @@ export default function Footer() {
   const legalName = f?.legalName ?? b.name;
   const links = f?.links ?? [];
   const duskOn = Boolean(f?.dusk);
+  // business.socials (SocialLink[]): omitted gracefully when unset/empty, same posture as
+  // every other optional footer block. rel="me" declares reciprocal ownership of the linked
+  // profile (IndieWeb convention); noopener protects the opened tab from window.opener access.
+  const socials = b.socials ?? [];
   return (
     <footer className={`site-footer${duskOn ? " dusk site-footer--dusk" : ""}`}>
       <div className="container site-footer__row">
@@ -32,6 +38,22 @@ export default function Footer() {
               <a key={i} href={l.href}>{l.label}</a>
             ))}
           </nav>
+        ) : null}
+        {socials.length ? (
+          <div className="site-footer__socials" aria-label="Social links">
+            {socials.map((s, i) => (
+              <a
+                key={i}
+                className="social-link"
+                href={s.href}
+                target="_blank"
+                rel="me noopener"
+                aria-label={s.label}
+              >
+                <SocialIcon platform={socialPlatform(s)} />
+              </a>
+            ))}
+          </div>
         ) : null}
         <div>&copy; {new Date().getFullYear()} {legalName}</div>
       </div>

@@ -29,7 +29,7 @@ into the roadmap's "Shipped" section and this doc points there.
 - **site-engine** (this repo, currently tag `v0.6.1`) is a config-driven Next.js 15 /
   React 19 / TypeScript engine: one codebase renders many local-business sites from a
   `site.config.ts` plus assets plus a pinned tag. It powers the Kitsap client sites and
-  is consumed by `kitsap-website-creation` through ephemeral clone-at-tag
+  is consumed by `maxlynk-services` (formerly kitsap-website-creation) through ephemeral clone-at-tag
   (`tools/engine-build.mjs`).
 - **They are disjoint: zero shared code.** The engine has already re-implemented much
   of RiseLynk's GEO/SEO idiom as parallel code (the `@graph`, `/llms.txt`, sitemap,
@@ -497,7 +497,7 @@ without #1 answered:
 
 1. **Where does engine newsletter/lead state live?** Recommended default: the shared
    Kitsap dynamic-sites Supabase project, keyed by site, with RLS, per
-   `kitsap-website-creation/CLAUDE.md`. Explicitly NOT RiseLynk's control-plane project
+   `maxlynk-services/CLAUDE.md`. Explicitly NOT RiseLynk's control-plane project
    (`kisbwugtvvdkltlixuic`) and NOT its per-tenant projects. Confirm before R3. This is a
    provisioning decision (money / infrastructure); stage it, do not self-authorize.
 2. **Does the Kitsap newsletter run one shared list across client sites, or one list per
@@ -533,5 +533,5 @@ contact-submit}`, `RiseLynk/tools/newsletter-publish.mjs`, `apps/landing/cookie-
 `RiseLynk/docs/archive/roadmap-shipped-log.md` (the 99/0 baseline),
 `RiseLynk/docs/plans/tenant-web-presence-and-seo.md` and `web-presence-phase0.md` (the host
 model), this engine's `roadmap.md` and `CLAUDE.md` (the release discipline and the reserved
-v0.7 slot), and `kitsap-website-creation/CLAUDE.md` (the consumer pipeline and the shared
+v0.7 slot), and `maxlynk-services/CLAUDE.md` (the consumer pipeline and the shared
 dynamic-sites Supabase model).
