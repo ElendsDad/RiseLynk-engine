@@ -905,7 +905,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
         {
           type: "about",
           heading: "Billed per licensed seat, field and office.",
-          body: "A tenant pays the greater of its seat count times the per-seat rate, or the plan minimum, so a small crew still pays a fair flat rate. AI usage is billed separately, metered, and priced at cost.\n\nAnnual prepay: about two months free, and the one-time setup fee cut in half.",
+          body: "A tenant pays the greater of its seat count times the per-seat rate, or the plan minimum, so a small crew still pays a fair flat rate. AI usage is billed separately, metered, and priced at cost. AI API spend is already expensive. We connect you to the models you choose, with no hidden fees. We can recommend a model, but the choice and the price are always yours.\n\nAnnual prepay: about two months free, and the one-time setup fee cut in half.",
         },
         {
           type: "about",
