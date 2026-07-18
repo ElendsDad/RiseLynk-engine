@@ -822,24 +822,24 @@ Click through the field app, dispatch board, and customer portal on synthetic da
       slug: "pricing",
       title: "RiseLynk pricing: simple per-seat plans for elevator service companies",
       description:
-        "Simple per-seat pricing for RiseLynk. Standard from $39 per seat, Pro from $59 per seat, and custom Enterprise, with a small monthly minimum and annual prepay that waives setup. Introductory pricing, subject to change and confirmed in a signed agreement.",
+        "Simple per-seat pricing for RiseLynk. Standard from $49 per seat, Pro from $79 per seat, and custom Enterprise, with a small monthly minimum and annual prepay that cuts setup in half. Introductory pricing, subject to change and confirmed in a signed agreement.",
       nav: "Pricing",
       sections: [
         {
           type: "pricing",
           subheading: "Pricing",
           heading: "Simple per-seat pricing, built for a service shop.",
-          body: "One flat platform fee for each licensed employee, field and office. No per-app charges. Pay monthly, or save about two months with annual billing, which also waives the one-time setup fee.",
+          body: "One flat platform fee for each licensed employee, field and office. No per-app charges. Pay monthly, or save about two months with annual billing, which also cuts the one-time setup fee in half.",
           // The ONE sanctioned gradient-text flourish: the highlighted (Pro) tier's price
           // renders with a brand-derived gradient clip; every other price stays solid.
           gradientPrice: true,
           tiers: [
             {
               name: "Standard",
-              price: "From $39",
+              price: "From $49",
               period: "/ seat / mo",
-              priceValue: 39,
-              meta: "$300 per month minimum, plus a one-time $500 setup fee, waived on annual prepay.",
+              priceValue: 49,
+              meta: "$350 per month minimum, plus a one-time $2,500 setup fee, half off on annual prepay.",
               who: "For a single branch getting organized.",
               features: [
                 "Field app, dispatch and routes",
@@ -852,10 +852,10 @@ Click through the field app, dispatch board, and customer portal on synthetic da
             },
             {
               name: "Pro",
-              price: "From $59",
+              price: "From $79",
               period: "/ seat / mo",
-              priceValue: 59,
-              meta: "$400 per month minimum, plus a one-time $1,500 setup fee, waived on annual prepay.",
+              priceValue: 79,
+              meta: "$600 per month minimum, plus a one-time $5,000 setup fee, half off on annual prepay.",
               who: "For a full-service operation.",
               features: [
                 "Everything in Standard",
@@ -874,7 +874,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
             {
               name: "Enterprise",
               price: "Custom",
-              meta: "Custom quote with a scoped implementation fee.",
+              meta: "Typically $10,000 to $25,000 for a scoped implementation, quoted for your operation.",
               who: "For multi-branch and custom needs.",
               features: [
                 "Everything in Pro",
@@ -895,7 +895,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
         {
           type: "about",
           heading: "Billed per licensed seat, field and office.",
-          body: "A tenant pays the greater of its seat count times the per-seat rate, or the plan minimum, so a small crew still pays a fair flat rate. Each plan includes a monthly AI usage allowance, and heavy use is metered.\n\nAnnual prepay: about two months free, and the setup fee waived.",
+          body: "A tenant pays the greater of its seat count times the per-seat rate, or the plan minimum, so a small crew still pays a fair flat rate. AI usage is billed separately, metered, and priced at cost.\n\nAnnual prepay: about two months free, and the one-time setup fee cut in half.",
         },
         {
           type: "about",
@@ -913,11 +913,11 @@ Click through the field app, dispatch board, and customer portal on synthetic da
             },
             {
               q: "What is the monthly minimum for?",
-              a: "The minimum keeps very small shops on a fair flat rate. Standard starts at a $300 per month minimum and Pro at $400 per month. Once your seat count times the per-seat rate is above the minimum, you simply pay for seats.",
+              a: "The minimum keeps very small shops on a fair flat rate. Standard starts at a $350 per month minimum and Pro at $600 per month. Once your seat count times the per-seat rate is above the minimum, you simply pay for seats.",
             },
             {
               q: "Can I pay annually?",
-              a: "Yes. Annual prepay saves you about two months compared with paying monthly, and it waives the one-time setup fee.",
+              a: "Yes. Annual prepay saves you about two months compared with paying monthly, and it cuts the one-time setup fee in half.",
             },
             {
               q: "Is this price final?",
