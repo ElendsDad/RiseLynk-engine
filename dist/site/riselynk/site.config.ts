@@ -45,7 +45,17 @@ export const site: SiteConfig = {
     tagline:
       "Offline-first maintenance software for elevator and escalator service companies.",
     email: "hello@riselynk.com",
-    socials: [{ label: "Live demo", href: "https://demo.app.riselynk.com" }],
+    // Founder-confirmed real social profiles (2026-07-18), now that the engine actually
+    // renders business.socials (site-engine v0.21.0: an accessible Footer icon row plus
+    // the Organization sameAs JSON-LD). The prior "Live demo" entry riding this same field
+    // was not a social channel and is dropped from here; that link stays fully prominent
+    // elsewhere (the hero CTA, blog closing CTAs, the FAQ, and the contact page copy all
+    // link demo.app.riselynk.com already). No Reddit (founder declined).
+    socials: [
+      { label: "LinkedIn", href: "https://www.linkedin.com/company/riselynk/" },
+      { label: "Instagram", href: "https://www.instagram.com/rise_lynk/" },
+      { label: "Facebook", href: "https://www.facebook.com/people/RiseLynk/61591563653973/" },
+    ],
     // No business.location on purpose: a structured location would flip the
     // @graph org node to LocalBusiness. riselynk.com is a software product
     // site; the org node must stay Organization (Phase-A acceptance).
@@ -895,7 +905,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
         {
           type: "about",
           heading: "Billed per licensed seat, field and office.",
-          body: "A tenant pays the greater of its seat count times the per-seat rate, or the plan minimum, so a small crew still pays a fair flat rate. AI usage is billed separately, metered, and priced at cost.\n\nAnnual prepay: about two months free, and the one-time setup fee cut in half.",
+          body: "A tenant pays the greater of its seat count times the per-seat rate, or the plan minimum, so a small crew still pays a fair flat rate. AI usage is billed separately, metered, and priced at cost. AI API spend is already expensive. We connect you to the models you choose, with no hidden fees. We can recommend a model, but the choice and the price are always yours.\n\nAnnual prepay: about two months free, and the one-time setup fee cut in half.",
         },
         {
           type: "about",

@@ -98,6 +98,13 @@ export function organizationLd(site: SiteConfig) {
   }
   const areaServed = areaServedLd(b.serviceArea, collectServiceAreas(site));
   if (areaServed) ld.areaServed = areaServed;
+  // sameAs: the same social profile links the Footer renders (business.socials), folded
+  // into the org node so search engines and AI answer engines can tie the two together.
+  // Omitted entirely when unset/empty, same claims-walled posture as every other optional
+  // fact here (nothing invented; a social link is emitted only when the config supplies one).
+  if (b.socials && b.socials.length) {
+    ld.sameAs = b.socials.map((s) => s.href);
+  }
   // AggregateRating / Review for the business, only when the config supplies a REAL
   // rating (claims-walled in withRatingLd). A business with none emits neither.
   withRatingLd(ld, b.rating, b.reviews);

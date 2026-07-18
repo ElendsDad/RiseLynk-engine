@@ -47,7 +47,11 @@ body {
 }
 
 img { max-width: 100%; height: auto; display: block; }
-a { color: var(--color-primary); }
+a { color: var(--color-primary); transition: color 0.18s ease; }
+/* A plain content link (not a .btn, which owns its own hover treatment below) gets a soft
+   color shift toward the brand accent on hover, so a link is never a color swap with zero
+   feedback. Scoped off .btn so button text stays exactly the color its variant sets. */
+a:not(.btn):hover { color: color-mix(in srgb, var(--color-primary) 65%, var(--color-accent)); }
 
 h1, h2, h3 { line-height: 1.15; margin: 0 0 0.5em; color: var(--color-text); }
 h1 { font-size: clamp(2rem, 5vw, 3.25rem); letter-spacing: -0.02em; }
@@ -66,15 +70,38 @@ p { margin: 0 0 1rem; }
   display: inline-flex; align-items: center; gap: 0.5rem;
   padding: 0.85rem 1.4rem; border-radius: var(--radius);
   font-weight: 700; text-decoration: none; cursor: pointer;
-  border: 2px solid transparent; transition: transform 0.06s ease, opacity 0.2s ease;
+  border: 2px solid transparent;
+  transition: transform 0.18s var(--ease-craft, ease), box-shadow 0.22s var(--ease-craft, ease),
+    border-color 0.18s ease, background 0.18s ease;
 }
-.btn:active { transform: translateY(1px); }
 .btn--primary { background: var(--color-primary); color: #fff; }
 .btn--accent { background: var(--color-accent); color: #16181d; }
 .btn--ghost { background: transparent; color: var(--color-primary); border-color: var(--line); }
-.btn:hover { opacity: 0.92; }
+/* Hover: a lift plus a soft brand-color glow, derived from the two brand tokens (no baked
+   color, honors the theme + dusk remaps automatically since color-mix reads the live custom
+   property). Fine-pointer only, so a touch tap never gets stuck mid-hover. */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover { transform: translateY(-2px); }
+  .btn--primary:hover {
+    box-shadow: 0 12px 26px -12px color-mix(in srgb, var(--color-primary) 55%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  }
+  .btn--accent:hover {
+    box-shadow: 0 12px 26px -12px color-mix(in srgb, var(--color-accent) 55%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
+  .btn--ghost:hover {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+    box-shadow: 0 10px 22px -14px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  }
+}
+.btn:active { transform: translateY(0) scale(0.98); }
 .btn:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
   outline: 3px solid var(--color-accent); outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover { transform: none; }
 }
 
 /* Header / nav */
@@ -83,8 +110,24 @@ p { margin: 0 0 1rem; }
 .brand-mark { display: flex; align-items: center; gap: 0.6rem; font-weight: 800; color: var(--color-primary); text-decoration: none; font-size: 1.15rem; }
 .brand-mark img { height: 36px; width: auto; }
 .nav { display: flex; gap: 1.4rem; align-items: center; }
-.nav a { text-decoration: none; color: var(--color-text); font-weight: 600; }
-.nav a:hover { color: var(--color-primary); }
+.nav a:not(.btn) {
+  position: relative;
+  text-decoration: none; color: var(--color-text); font-weight: 600;
+  transition: color 0.18s ease;
+}
+/* Underline sweep: an accent-colored bar grows in from the left on hover/focus, settled to
+   an instant reveal under reduced motion by the master transition guard above. */
+.nav a:not(.btn)::after {
+  content: "";
+  position: absolute; left: 0; right: 100%; bottom: -4px;
+  height: 2px; border-radius: 2px;
+  background: var(--color-accent);
+  transition: right 0.22s var(--ease-craft, ease);
+}
+.nav a:not(.btn):hover,
+.nav a:not(.btn):focus-visible { color: var(--color-primary); }
+.nav a:not(.btn):hover::after,
+.nav a:not(.btn):focus-visible::after { right: 0; }
 .nav__cta { margin-left: 0.5rem; }
 @media (max-width: 720px) {
   .nav { gap: 0.9rem; font-size: 0.9rem; flex-wrap: wrap; justify-content: flex-end; }
@@ -159,8 +202,31 @@ p { margin: 0 0 1rem; }
 /* Footer */
 .site-footer { border-top: 1px solid var(--line); background: var(--surface); padding-block: 2.5rem; margin-top: 2rem; }
 .site-footer__row { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; color: var(--muted); font-size: 0.92rem; }
-.site-footer a { color: var(--color-text); text-decoration: none; }
+.site-footer a { color: var(--color-text); text-decoration: none; transition: color 0.18s ease; }
 .site-footer a:hover { color: var(--color-primary); }
+
+/* Social links (business.socials): a row of accessible icon buttons. Renders only when the
+   config supplies at least one entry (components/Footer.tsx); omitted gracefully otherwise. */
+.site-footer__socials { display: flex; gap: 0.6rem; align-items: center; }
+.social-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--muted);
+  transition: color 0.18s ease, border-color 0.18s ease,
+    transform 0.18s var(--ease-craft, ease), box-shadow 0.22s var(--ease-craft, ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .social-link:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px -14px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  }
+}
+.social-link:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .social-link:hover { transform: none; }
+}
 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 /* Honeypot anti-spam trap (feature-backlog #4): moved off-screen and out of the layout so
@@ -628,8 +694,34 @@ p { margin: 0 0 1rem; }
    (for example a gradient price) on .plan--highlighted without engine changes.
    ============================================================================ */
 .plans { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: start; }
-.plan { position: relative; display: flex; flex-direction: column; gap: 0.5rem; border: 1px solid var(--line); border-radius: var(--radius); padding: 1.75rem 1.5rem; background: var(--color-bg); }
+.plan {
+  position: relative; display: flex; flex-direction: column; gap: 0.5rem;
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 1.75rem 1.5rem;
+  background: var(--color-bg);
+  transition: transform 0.26s var(--ease-craft, ease), border-color 0.26s var(--ease-craft, ease),
+    box-shadow 0.26s var(--ease-craft, ease);
+}
 .plan--highlighted { border-color: var(--color-primary); border-width: 2px; box-shadow: 0 8px 30px color-mix(in srgb, var(--color-primary) 12%, transparent); }
+/* Hover elevation on a pricing tier: a lift plus a soft brand-color glow, both derived from
+   the two brand tokens. Fine-pointer only (mirrors the R5.1 glass-hover convention below), so
+   a touch tap never gets stuck mid-hover. The highlighted tier lifts a touch further and keeps
+   its own accent-tinted glow, so it still reads as the recommended plan on hover. */
+@media (hover: hover) and (pointer: fine) {
+  .plan:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--color-accent) 40%, var(--line));
+    box-shadow: 0 22px 46px -24px color-mix(in srgb, var(--color-text) 30%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--color-accent) 14%, transparent);
+  }
+  .plan--highlighted:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 26px 54px -20px color-mix(in srgb, var(--color-primary) 34%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--color-accent) 22%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plan:hover, .plan--highlighted:hover { transform: none; }
+}
 .plan__badge { position: absolute; top: -0.75rem; left: 1.5rem; background: var(--color-primary); color: #fff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.25rem 0.6rem; border-radius: 999px; }
 .plan__name { margin: 0; font-size: 1.15rem; }
 .plan__price { margin: 0; font-weight: 800; font-size: 1.9rem; color: var(--color-primary); line-height: 1.1; }

@@ -2,7 +2,7 @@
 // Per site, you edit a site.config.ts (typed by SiteConfig) and nothing else.
 //
 // Provenance: extracted 2026-07-10 from
-// kitsap-website-creation/templates/brochure/lib/config-schema.ts. The `business.location`
+// maxlynk-services/templates/brochure/lib/config-schema.ts (formerly kitsap-website-creation). The `business.location`
 // block was added in v0.1.0 so the SEO machinery (lib/seo.ts) reads a real address off
 // config instead of the hardcoded Port Orchard values it carried in KitsapComponent.
 //
