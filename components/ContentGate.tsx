@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { Section } from "@/lib/config-schema";
 import { site } from "@/site.config";
 import Turnstile from "@/components/Turnstile";
+import LeadAttribution from "@/components/LeadAttribution";
+import Prose from "@/components/Prose";
 import { gateLeadBody, gateSource, sanitizeGateAssetHref } from "@/lib/content-gate.mjs";
 
 // Lead-capture content gate, Phases 0-1 (docs/plans/lead-capture-content-gate.md).
@@ -69,7 +71,11 @@ export default function ContentGate({ section }: { section: Section }) {
       <div className="container">
         {section.subheading ? <p className="eyebrow">{section.subheading}</p> : null}
         {section.heading ? <h2>{section.heading}</h2> : null}
-        {section.body ? <p className="lead">{section.body}</p> : null}
+        {section.body ? (
+          <p className="lead">
+            <Prose text={section.body} />
+          </p>
+        ) : null}
         {gate.bullets && gate.bullets.length > 0 ? (
           <ul style={{ marginTop: "1rem" }}>
             {gate.bullets.map((b) => (
@@ -116,6 +122,7 @@ export default function ContentGate({ section }: { section: Section }) {
               <label htmlFor="cg-website">Website</label>
               <input id="cg-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
             </div>
+            <LeadAttribution />
             {/* With JavaScript on, onSubmit's gateLeadBody() sets `source` explicitly. With
                 JavaScript off the browser posts the DOM's own named fields verbatim, so
                 without this the gate's attribution (which asset produced the lead) would be

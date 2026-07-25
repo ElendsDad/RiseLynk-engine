@@ -35,6 +35,13 @@ import type { SiteConfig } from "@/lib/config-schema";
 //
 // seo.domain is deliberately UNSET: the build is draft/noindex until the founder
 // attaches riselynk.com at cutover (the go-live flip is adding the domain line).
+//
+// COMPARE GATE: website/site/public/compare/index.html is a static comparison
+// page that ships DARK: its own <meta name="robots" content="noindex"> (STATUS:
+// STAGED in that file), linked from NOWHERE in this config, and absent from the
+// sitemap by construction (the engine sitemap only lists config pages + published
+// articles). It stays dark until the founder and the attorney clear the
+// comparative claims. Do not add a compare slug, nav link, or href here.
 // =============================================================================
 
 export const site: SiteConfig = {
@@ -45,17 +52,7 @@ export const site: SiteConfig = {
     tagline:
       "Offline-first maintenance software for elevator and escalator service companies.",
     email: "hello@riselynk.com",
-    // Founder-confirmed real social profiles (2026-07-18), now that the engine actually
-    // renders business.socials (site-engine v0.21.0: an accessible Footer icon row plus
-    // the Organization sameAs JSON-LD). The prior "Live demo" entry riding this same field
-    // was not a social channel and is dropped from here; that link stays fully prominent
-    // elsewhere (the hero CTA, blog closing CTAs, the FAQ, and the contact page copy all
-    // link demo.app.riselynk.com already). No Reddit (founder declined).
-    socials: [
-      { label: "LinkedIn", href: "https://www.linkedin.com/company/riselynk/" },
-      { label: "Instagram", href: "https://www.instagram.com/rise_lynk/" },
-      { label: "Facebook", href: "https://www.facebook.com/people/RiseLynk/61591563653973/" },
-    ],
+    socials: [{ label: "Live demo", href: "https://demo.app.riselynk.com" }],
     // No business.location on purpose: a structured location would flip the
     // @graph org node to LocalBusiness. riselynk.com is a software product
     // site; the org node must stay Organization (Phase-A acceptance).
@@ -174,6 +171,11 @@ export const site: SiteConfig = {
   footer: {
     legalName: "Maxwell Industries LLC",
     links: [
+      { label: "About", href: "/about" },
+      { label: "Features", href: "/features" },
+      { label: "Support", href: "/support" },
+      { label: "Questions", href: "/questions" },
+      { label: "Integrations", href: "/integrations" },
       { label: "Trust", href: "/trust" },
       { label: "Security", href: "/security" },
       { label: "Privacy", href: "/privacy" },
@@ -527,7 +529,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
           // contact page) and open-the-app are ghost, matching the bundle's button set.
           cta: [
             { label: "See a live demo", href: "https://demo.app.riselynk.com", variant: "primary" },
-            { label: "Request access", href: "/contact", variant: "ghost" },
+            { label: "Request access", href: "/#request-access", variant: "ghost" },
             { label: "Open the app", href: "https://app.riselynk.com", variant: "ghost" },
           ],
           // Mono proof-chip row under the CTAs (bundle .proofrow, verbatim copy).
@@ -603,42 +605,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
   </div>
 </div>`,
         },
-        {
-          // The #see-it scroll story, including the portal-ad video payoff.
-          // pinned:false (v0.17.0): the calm stacked step timeline, no scroll pin or
-          // hijack. Every scene caption and the portal-ad video payoff are kept.
-          type: "scrollNarrative",
-          pinned: false,
-          subheading: "See it in action",
-          heading: "From the QR at the front desk to a dispatched tech, in one scan",
-          scenes: [
-            {
-              label: "STEP 01 · SCAN",
-              caption: "A building manager scans the code at the front desk,",
-            },
-            {
-              label: "STEP 02 · REPORT",
-              caption: "reports the problem,",
-            },
-            {
-              label: "STEP 03 · DISPATCH",
-              caption: "and messages the mechanic,",
-            },
-            {
-              label: "STEP 04 · IN THE FIELD",
-              caption: "with no login and no call center.",
-            },
-            {
-              label: "THE REAL THING",
-              caption: "RiseLynk customer portal: scan, report, message a tech.",
-              video: {
-                src: "/media/portal-ad.mp4",
-                poster: "/media/portal-ad-poster.jpg",
-                label: "RiseLynk customer portal: scan, report, message a tech",
-              },
-            },
-          ],
-        },
+
         {
           // The feature grid, ported as services (each item also becomes a
           // Service node in the @graph). The two SOON features keep their
@@ -737,37 +704,11 @@ Click through the field app, dispatch board, and customer portal on synthetic da
           ],
         },
         {
-          // FAQ, VERBATIM from the bundle; the FAQPage JSON-LD mirrors it by
-          // construction (same array).
-          type: "faq",
-          heading: "Common questions",
-          body: "Straight answers, no sales spin.",
-          faqs: [
-            {
-              q: "Does RiseLynk work with no signal?",
-              a: "Yes. The field app is offline-first, so it keeps working in basements and machine rooms with no signal, then syncs when the phone is back online.",
-            },
-            {
-              q: "Is RiseLynk locked to one elevator manufacturer?",
-              a: "No. RiseLynk is OEM-agnostic and built for mixed-manufacturer routes, not locked to one equipment maker.",
-            },
-            {
-              q: "What is included in RiseLynk?",
-              a: "Three environments on one shared system, the field app, the office console, and the customer portal, plus the Lynk AI assistant, with no re-keying between tools.",
-            },
-            {
-              q: "How do building customers reach RiseLynk?",
-              a: "Through a no-login QR code at the front desk. A building manager can report a trouble call and see their equipment's service status and history, with an entrapment fast-path to the branch phone.",
-            },
-            {
-              q: "Does RiseLynk help with my Maintenance Control Program?",
-              a: "Yes. For each unit, RiseLynk assembles a starting-point MCP from the manufacturer materials you supply, structured around ASME A17.1 / CSA B44 Section 8.6 and the minimum-task floor for that equipment class. Your own qualified personnel review, complete, and adopt it. The draft is a starting point, not a code-compliance certification. RiseLynk is not the inspector or the authority having jurisdiction.",
-            },
-            {
-              q: "Can I try RiseLynk before buying?",
-              a: "Yes. A live demo runs on synthetic data at demo.app.riselynk.com, no signup.",
-            },
-          ],
+          type: "cta",
+          heading: "Questions",
+          body: "Straight answers live on their own page so you can open each one as you go.",
+          ctaLabel: "Open the questions page",
+          ctaHref: "/questions",
         },
         {
           // The final CTA, on the DUSK band (v0.17.0): the dark-in-both-themes closing
@@ -832,7 +773,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
       slug: "pricing",
       title: "RiseLynk pricing: simple per-seat plans for elevator service companies",
       description:
-        "Simple per-seat pricing for RiseLynk. Standard from $49 per seat, Pro from $79 per seat, and custom Enterprise, with a small monthly minimum and annual prepay that cuts setup in half. Introductory pricing, subject to change and confirmed in a signed agreement.",
+        "Simple per-seat pricing for RiseLynk. Standard from $49 per seat, Pro from $79 per seat, and custom Enterprise, with a small monthly minimum and annual prepay that cuts the setup fee in half. Introductory pricing, subject to change and confirmed in a signed agreement.",
       nav: "Pricing",
       sections: [
         {
@@ -858,7 +799,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
                 "Lynk AI assistant",
               ],
               ctaLabel: "Request access",
-              ctaHref: "/contact",
+              ctaHref: "/#request-access",
             },
             {
               name: "Pro",
@@ -875,7 +816,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
                 "Account margin and labor cost",
               ],
               ctaLabel: "Request access",
-              ctaHref: "/contact",
+              ctaHref: "/#request-access",
               // The hot plan: the gradient price is the one sanctioned gradient-
               // text flourish, keyed off this flag.
               highlighted: true,
@@ -884,7 +825,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
             {
               name: "Enterprise",
               price: "Custom",
-              meta: "Typically $10,000 to $25,000 for a scoped implementation, quoted for your operation.",
+              meta: "Custom quote with a scoped implementation fee, typically $10,000 to $25,000.",
               who: "For multi-branch and custom needs.",
               features: [
                 "Everything in Pro",
@@ -896,6 +837,67 @@ Click through the field app, dispatch board, and customer portal on synthetic da
               ctaHref: "/contact",
             },
           ],
+          // Teardown IA: feature-by-feature matrix under the cards (needs engine
+          // comparisonRows; absent on v0.20.0). Authored from the teardown pricing
+          // matrix; retired per-seat figures stay quarantined out of this file.
+          comparisonRows: [
+            {
+              feature: "Per-seat rate (field and office)",
+              cells: ["From $49 / seat / mo", "From $79 / seat / mo", "Custom"],
+            },
+            {
+              feature: "Monthly minimum",
+              cells: ["$350", "$600", "Scoped"],
+            },
+            {
+              feature: "One-time setup",
+              cells: [
+                "$2,500 (half off annual)",
+                "$5,000 (half off annual)",
+                "$10,000 to $25,000 typical",
+              ],
+            },
+            {
+              feature: "Field app, dispatch, routes",
+              cells: [true, true, true],
+            },
+            {
+              feature: "Tickets, time, materials, Category tests",
+              cells: [true, true, true],
+            },
+            {
+              feature: "Customer portal",
+              cells: [true, true, true],
+            },
+            {
+              feature: "Lynk AI assistant",
+              cells: [true, true, true],
+            },
+            {
+              feature: "Proposals and sales CRM",
+              cells: [false, true, true],
+            },
+            {
+              feature: "Contracts, invoicing, payroll",
+              cells: [false, true, true],
+            },
+            {
+              feature: "Inventory and purchase orders",
+              cells: [false, true, true],
+            },
+            {
+              feature: "Account margin and labor cost",
+              cells: [false, true, true],
+            },
+            {
+              feature: "Dedicated tenant / advanced security",
+              cells: ["Shared plan shape", "Shared plan shape", true],
+            },
+            {
+              feature: "Priority support",
+              cells: ["Standard", "Standard", true],
+            },
+          ],
         },
         {
           type: "about",
@@ -905,7 +907,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
         {
           type: "about",
           heading: "Billed per licensed seat, field and office.",
-          body: "A tenant pays the greater of its seat count times the per-seat rate, or the plan minimum, so a small crew still pays a fair flat rate. AI usage is billed separately, metered, and priced at cost. AI API spend is already expensive. We connect you to the models you choose, with no hidden fees. We can recommend a model, but the choice and the price are always yours.\n\nAnnual prepay: about two months free, and the one-time setup fee cut in half.",
+          body: "A tenant pays the greater of its seat count times the per-seat rate, or the plan minimum, so a small crew still pays a fair flat rate. AI usage is billed separately, metered, and priced at cost.\n\nAnnual prepay: about two months free, and half off the setup fee.",
         },
         {
           type: "about",
@@ -913,7 +915,18 @@ Click through the field app, dispatch board, and customer portal on synthetic da
           body: "Optional add-ons, like a managed marketing website and an SEO article service, are available on top of any plan. If you're one of the first service companies to come on, ask about early-adopter terms. Talk to us through the contact page and we'll put together a quote for your operation.",
         },
         {
+          type: "about",
+          heading: "Add-on rows",
+          body: "Complete setup / data entry: $325 per hour company professional-services rate (business hours), scoped estimate first. After-hours: $485 per hour, 2-hour minimum. Integration block: $3000 prepaid 10 hours. Managed website and SEO articles: quote only.",
+        },
+        {
+          type: "about",
+          heading: "Importing data from your current system",
+          body: "Export from your current tool, map columns during setup, confirm a sample before go-live. Self-import is covered in standard setup. Staff data entry is the $325 per hour complete setup line.",
+        },
+        {
           type: "faq",
+          style: "collapse",
           heading: "Pricing questions",
           body: "Straight answers, no sales spin.",
           faqs: [
@@ -965,105 +978,169 @@ Click through the field app, dispatch board, and customer portal on synthetic da
           heading: "The codes, authorities, and training behind every elevator job.",
           body: "Quick links to the people who write the codes, regulate the work, and train the trade, focused on the US. Every link goes to the organization's own official site. No logins, no middleman.\n\nFind your code and authority: US elevator safety is regulated state by state. Your state (or city) adopts an edition of ASME A17.1 and runs its own permits, licensing, and inspections. Start with your state's elevator program below. RiseLynk is built around Washington's L&I program as the worked example.",
         },
+        // Teardown IA: dense directory (needs engine type "directory"; absent on
+        // v0.20.0). Hrefs and OR/PA/UT/AZ copy from the teardown resources page.
+        // PA stays authority-only (NO-PUBLIC-DATA); no fabricated lookup.
         {
-          type: "records",
+          type: "directory",
           heading: "Safety & regulatory authorities",
-          records: {
-            enabled: true,
-            intro: "Permits, licensing, inspections, and the code your state has adopted. There are 50 different answers; these are some of the largest programs to get you started.",
-            items: [
-              {
-                title: "Washington, L&I Elevator Program",
-                body: "Permits, mechanic and company licensing, inspections, and Maintenance Control Program rules for 22,000+ conveyances. RiseLynk's home program. Program: lni.wa.gov/licensing-permits/elevators. Conveyance lookup: secure.lni.wa.gov/elevatorlookup.",
-              },
-              {
-                title: "California, Cal/OSHA Elevator Unit",
-                body: "DOSH inspects and enforces code compliance for conveyances statewide, with regional offices for permits and operating permits. Program: dir.ca.gov/dosh/Elevator.html.",
-              },
-              {
-                title: "New York City, DOB Elevators",
-                body: "NYC Department of Buildings: twice-yearly inspection/test filing through DOB NOW, device permits, and compliance rules. Program: nyc.gov/site/buildings/safety/elevator.page.",
-              },
-              {
-                title: "Texas, TDLR Elevators & Escalators",
-                body: "Department of Licensing & Regulation: contractor and inspector licensing, registration, forms, and the advisory board. Program: tdlr.texas.gov/elevator.",
-              },
-              {
-                title: "Florida, DBPR Bureau of Elevator Safety",
-                body: "Licensing, permitting, and inspection of conveyances statewide, under the Division of Hotels & Restaurants. Program: www2.myfloridalicense.com/elevator-safety.",
-              },
-              {
-                title: "Don't see your state?",
-                body: "Almost every state (and some cities) runs its own elevator program. Search \"your state elevator program\", or use the NAESA inspector side below at naesai.org. Know one we should add? Tell us at hello@riselynk.com.",
-              },
-            ],
-          },
+          body: "Permits, licensing, inspections, and the code your state has adopted. There are 50 different answers; these are some of the largest programs to get you started.",
+          directoryItems: [
+            {
+              meta: "WA",
+              title: "Washington, L&I Elevator Program",
+              body: "Permits, mechanic and company licensing, inspections, and Maintenance Control Program rules for 22,000+ conveyances. RiseLynk's home program. Conveyance lookup is on the L&I site.",
+              href: "https://lni.wa.gov/licensing-permits/elevators/",
+              ctaLabel: "Open program",
+            },
+            {
+              meta: "CA",
+              title: "California, Cal/OSHA Elevator Unit",
+              body: "DOSH inspects and enforces code compliance for conveyances statewide, with regional offices for permits and operating permits.",
+              href: "https://www.dir.ca.gov/dosh/Elevator.html",
+              ctaLabel: "Open program",
+            },
+            {
+              meta: "NYC",
+              title: "New York City, DOB Elevators",
+              body: "NYC Department of Buildings: twice-yearly inspection/test filing through DOB NOW, device permits, and compliance rules.",
+              href: "https://www.nyc.gov/site/buildings/safety/elevator.page",
+              ctaLabel: "Open program",
+            },
+            {
+              meta: "TX",
+              title: "Texas, TDLR Elevators & Escalators",
+              body: "Department of Licensing & Regulation: contractor and inspector licensing, registration, forms, and the advisory board.",
+              href: "https://www.tdlr.texas.gov/elevator/",
+              ctaLabel: "Open program",
+            },
+            {
+              meta: "FL",
+              title: "Florida, DBPR Bureau of Elevator Safety",
+              body: "Licensing, permitting, and inspection of conveyances statewide, under the Division of Hotels & Restaurants.",
+              href: "https://www2.myfloridalicense.com/elevator-safety/",
+              ctaLabel: "Open program",
+            },
+            {
+              meta: "OR",
+              title: "Oregon, BCD Elevator Code Program",
+              body: "Building Codes Division elevator program: specialty code, permits, licensing, and inspections.",
+              href: "https://www.oregon.gov/bcd/codes-stand/Pages/elevators.aspx",
+              ctaLabel: "Open program",
+            },
+            {
+              meta: "PA",
+              title: "Pennsylvania, L&I Elevators (no public lookup)",
+              body: "Department of Labor and Industry elevator authority under the UCC. No public conveyance lookup is published (NO-PUBLIC-DATA). Authority page only.",
+              href: "https://www.pa.gov/agencies/dli/programs-services/labor-management-relations/bureau-of-occupational-and-industrial-safety/tpa-elevators",
+              ctaLabel: "Open authority page",
+            },
+            {
+              meta: "UT",
+              title: "Utah, Labor Commission elevator search",
+              body: "Public elevator-item search by Elevator Number on the Labor Commission InspectorWeb.",
+              href: "https://webaccess.laborcommission.utah.gov/inspectorweb/public/search-elevator-items-public.jsf",
+              ctaLabel: "Open search",
+            },
+            {
+              meta: "AZ",
+              title: "Arizona / Phoenix elevators (SHAPE PHX)",
+              body: "City of Phoenix elevators and escalators page. Certificates moved to SHAPE PHX; legacy PDD ElevatorPermits tool is retired.",
+              href: "https://www.phoenix.gov/administration/departments/pdd/commercial-multifamily-building/commercial-plan-reviews-permits/elevators-escalators.html",
+              ctaLabel: "Open program",
+            },
+            {
+              meta: "US",
+              title: "Don't see your state?",
+              body: "Almost every state (and some cities) runs its own elevator program. Search your state elevator program, or use the NAESA inspector side below. Know one we should add? Tell us at hello@riselynk.com.",
+              href: "https://naesai.org/",
+              ctaLabel: "Open NAESA",
+            },
+          ],
         },
         {
-          type: "records",
+          type: "directory",
           heading: "Inspectors & codes",
-          records: {
-            enabled: true,
-            intro: "The safety code itself, and the body that certifies the inspectors who enforce it.",
-            items: [
-              {
-                title: "ASME A17.1 / A17.3",
-                body: "The Safety Code for Elevators and Escalators, the standard your state adopts (often a specific edition). Includes A17.2 inspectors' manual. On the web: asme.org/codes-standards.",
-              },
-              {
-                title: "NAESA International",
-                body: "The National Association of Elevator Safety Authorities, QEI inspector certification, training, and the regulator community. On the web: naesai.org.",
-              },
-              {
-                title: "CSA Group, B44",
-                body: "The Canadian counterpart to A17.1, harmonized with it, a useful reference for cross-border crews and shared design requirements. On the web: csagroup.org.",
-              },
-            ],
-          },
+          body: "The safety code itself, and the body that certifies the inspectors who enforce it.",
+          directoryItems: [
+            {
+              meta: "Codes",
+              title: "ASME A17.1 / A17.3",
+              body: "The Safety Code for Elevators and Escalators, the standard your state adopts (often a specific edition). Includes A17.2 inspectors' manual.",
+              href: "https://www.asme.org/codes-standards/find-codes-standards/safety-code-for-elevators-and-escalators",
+              ctaLabel: "Open ASME",
+            },
+            {
+              meta: "QEI",
+              title: "NAESA International",
+              body: "The National Association of Elevator Safety Authorities, QEI inspector certification, training, and the regulator community.",
+              href: "https://naesai.org/",
+              ctaLabel: "Open NAESA",
+            },
+            {
+              meta: "CA",
+              title: "CSA Group, B44",
+              body: "The Canadian counterpart to A17.1, harmonized with it, a useful reference for cross-border crews and shared design requirements.",
+              href: "https://www.csagroup.org/",
+              ctaLabel: "Open CSA",
+            },
+          ],
         },
         {
-          type: "records",
+          type: "directory",
           heading: "Union & training",
-          records: {
-            enabled: true,
-            intro: "The trade union and its apprenticeship and continuing-education program.",
-            items: [
-              {
-                title: "IUEC",
-                body: "International Union of Elevator Constructors, the trade union representing elevator mechanics across the US and Canada. On the web: iuec.org.",
-              },
-              {
-                title: "IUEC Safety Alerts",
-                body: "Field safety alerts organized by topic, incident-driven warnings worth a read before the job, not after. On the web: iuec.org/index.php/safety-alerts-by-topic.",
-              },
-              {
-                title: "NEIEP",
-                body: "National Elevator Industry Educational Program, the apprenticeship and continuing-education program for the trade. On the web: neiep.org.",
-              },
-            ],
-          },
+          body: "The trade union and its apprenticeship and continuing-education program.",
+          directoryItems: [
+            {
+              meta: "Union",
+              title: "IUEC",
+              body: "International Union of Elevator Constructors, the trade union representing elevator mechanics across the US and Canada.",
+              href: "https://iuec.org/",
+              ctaLabel: "Open IUEC",
+            },
+            {
+              meta: "Safety",
+              title: "IUEC Safety Alerts",
+              body: "Field safety alerts organized by topic, incident-driven warnings worth a read before the job, not after.",
+              href: "https://iuec.org/index.php/safety-alerts-by-topic/",
+              ctaLabel: "Open alerts",
+            },
+            {
+              meta: "Training",
+              title: "NEIEP",
+              body: "National Elevator Industry Educational Program, the apprenticeship and continuing-education program for the trade.",
+              href: "https://www.neiep.org/",
+              ctaLabel: "Open NEIEP",
+            },
+          ],
         },
         {
-          type: "records",
+          type: "directory",
           heading: "Industry associations & news",
-          records: {
-            enabled: true,
-            intro: "Contractor and manufacturer associations, plus the trade press.",
-            items: [
-              {
-                title: "NAEC",
-                body: "National Association of Elevator Contractors, education (CET®/CAT®), the annual convention, and the contractor community. On the web: naec.org.",
-              },
-              {
-                title: "NEII",
-                body: "National Elevator Industry, Inc., the manufacturers and major service companies; codes advocacy and industry standards. On the web: nationalelevatorindustry.org.",
-              },
-              {
-                title: "Elevator World",
-                body: "The trade's magazine of record since 1953, with industry news, technical articles, and a searchable archive. On the web: elevatorworld.com.",
-              },
-            ],
-          },
+          body: "Contractor and manufacturer associations, plus the trade press.",
+          directoryItems: [
+            {
+              meta: "Contractors",
+              title: "NAEC",
+              body: "National Association of Elevator Contractors, education (CET and CAT credentials), the annual convention, and the contractor community.",
+              href: "https://www.naec.org/",
+              ctaLabel: "Open NAEC",
+            },
+            {
+              meta: "Industry",
+              title: "NEII",
+              body: "National Elevator Industry, Inc., the manufacturers and major service companies; codes advocacy and industry standards.",
+              href: "https://nationalelevatorindustry.org/",
+              ctaLabel: "Open NEII",
+            },
+            {
+              meta: "News",
+              title: "Elevator World",
+              body: "The trade's magazine of record since 1953, with industry news, technical articles, and a searchable archive.",
+              href: "https://elevatorworld.com/",
+              ctaLabel: "Open Elevator World",
+            },
+          ],
         },
         {
           type: "cta",
@@ -1072,6 +1149,111 @@ Click through the field app, dispatch board, and customer portal on synthetic da
           body: "RiseLynk keeps your tickets, tests, and routes working in the hoistway, then syncs the moment you have signal. See it on live sample data.",
           ctaLabel: "See a live demo",
           ctaHref: "https://demo.app.riselynk.com",
+        },
+      ],
+    },
+
+
+    {
+      slug: "questions",
+      title: "Common questions about RiseLynk",
+      description: "Straight answers about offline-first field work, OEM coverage, the customer portal, Maintenance Control Programs, and trying the live demo.",
+      nav: "Questions",
+      sections: [
+        {
+          type: "faq",
+          style: "collapse",
+          heading: "Common questions",
+          body: "Straight answers, no sales spin.",
+          faqs: [
+            { q: "Does RiseLynk work with no signal?", a: "Yes. The field app is offline-first, so it keeps working in basements and machine rooms with no signal, then syncs when the phone is back online." },
+            { q: "Is RiseLynk locked to one elevator manufacturer?", a: "No. RiseLynk is OEM-agnostic and built for mixed-manufacturer routes, not locked to one equipment maker." },
+            { q: "What is included in RiseLynk?", a: "Three environments on one shared system, the field app, the office console, and the customer portal, plus the Lynk AI assistant, with no re-keying between tools." },
+            { q: "How do building customers reach RiseLynk?", a: "Through a no-login QR code at the front desk. A building manager can report a trouble call and see their equipment's service status and history, with an entrapment fast-path to the branch phone." },
+            { q: "Does RiseLynk help with my Maintenance Control Program?", a: "Yes. For each unit, RiseLynk assembles a starting-point MCP from the manufacturer materials you supply, structured around ASME A17.1 / CSA B44 Section 8.6 and the minimum-task floor for that equipment class. Your own qualified personnel review, complete, and adopt it. The draft is a starting point, not a code-compliance certification. RiseLynk is not the inspector or the authority having jurisdiction." },
+            { q: "Can I try RiseLynk before buying?", a: "Yes. A live demo runs on synthetic data at demo.app.riselynk.com, no signup." },
+            { q: "How do seats work for field and office?", a: "One flat per-seat rate covers field and office logins. There is no separate mechanic seat and office seat price." },
+          ],
+        },
+      ],
+    },
+
+
+    {
+      slug: "about",
+      title: "About RiseLynk: what, where, why, who, and methodology",
+      description: "What RiseLynk is, where it runs, why it exists, who builds it, and the methodology behind an offline-first elevator maintenance platform.",
+      nav: "About",
+      sections: [
+        {
+          type: "about",
+          subheading: "About",
+          heading: "What RiseLynk is, and how we build it.",
+          body: "What: offline-first maintenance software for elevator and escalator service companies.\n\nWhere: app.riselynk.com and riselynk.com. Maxwell Industries LLC, Port Orchard, Washington.\n\nWhy: machine rooms drop signal. RiseLynk treats no signal as the normal case.\n\nWho: independent and regional elevator service shops.\n\nMethodology: ship what the trade can verify. AI proposes; a human disposes. MCP drafts are starting points structured around ASME A17.1 / CSA B44 Section 8.6. Not a code-compliance certification.",
+        },
+      ],
+    },
+    {
+      slug: "features",
+      title: "RiseLynk features: field, office, portal, and Lynk",
+      description: "What ships today in RiseLynk across field, office, portal, and Lynk.",
+      nav: "Features",
+      sections: [
+        {
+          type: "services",
+          heading: "The platform, by surface, as it ships today.",
+          body: "Field, office, customer portal, and Lynk on one shared record.",
+          items: [
+            { title: "Field app", body: "Offline-first routes, tickets, time, materials, photos, Category tests, messaging, and in-flow guides." },
+            { title: "Office console", body: "Dispatch, routes, proposals, sales CRM, inventory, invoicing, IUEC-aware payroll, and MCP records." },
+            { title: "Customer portal", body: "No-login front-desk QR trouble calls, entrapment fast path, and account-manager sign-in." },
+            { title: "Lynk", body: "Plain-English answers from your own records. Agent proposes, office disposes." },
+            { title: "CRM and sales", body: "Proposals and sales CRM on the same record as dispatch and billing." },
+            { title: "Maintenance Control Programs", body: "Starting-point MCP per unit from your manufacturer materials, structured around Section 8.6. Not a code-compliance certification." },
+          ],
+        },
+      ],
+    },
+    {
+      slug: "support",
+      title: "RiseLynk support: help for field, office, and portal",
+      description: "Where to get RiseLynk help: in-app guides, the live demo, and contact paths.",
+      nav: "Support",
+      sections: [
+        {
+          type: "about",
+          heading: "Help that stays with the work.",
+          body: "In-app guides and help videos live inside the product. Try demo.app.riselynk.com with no signup. Email hello@riselynk.com. Privacy: privacy@riselynk.com.",
+        },
+        {
+          type: "cta",
+          heading: "Need a person?",
+          body: "Request access or ask about your operation.",
+          ctaLabel: "Request access",
+          ctaHref: "/#request-access",
+        },
+      ],
+    },
+    {
+      slug: "integrations",
+      title: "RiseLynk integrations: money accounts and how you pay",
+      description: "How RiseLynk connects billing and payments for your shop and for your RiseLynk bill.",
+      nav: "Integrations",
+      sections: [
+        {
+          type: "about",
+          heading: "How you connect money accounts",
+          body: "Customer invoicing runs through your own Stripe connection inside your RiseLynk tenant. RiseLynk does not take a cut of your customer payments.",
+        },
+        {
+          type: "about",
+          heading: "How you pay RiseLynk",
+          body: "Your subscription bills separately from your customer Stripe. Annual prepay cuts the setup fee in half. Final numbers lock in a signed agreement.",
+        },
+        {
+          type: "about",
+          heading: "AI model spend",
+          body: "Lynk usage is metered and billed separately, priced at cost.",
         },
       ],
     },
@@ -1090,6 +1272,32 @@ Click through the field app, dispatch board, and customer portal on synthetic da
           type: "contact",
           heading: "Let's get your branch running on RiseLynk.",
           body: "Tell us about your operation, roughly how many units you maintain, the OEMs on your routes, and how your office runs today, and we'll set you up. Prefer to look first? The live demo runs on sample data, no signup.",
+        },
+        {
+          type: "about",
+          heading: "Lynk",
+          body: "Lynk thinks in your records, node by node. Brand mark: /media/lynk-node-thinking.svg.",
+        },
+        {
+          type: "leadform",
+          modal: true,
+          modalTriggerLabel: "Request access",
+          heading: "Request access",
+          body: "Tell us about your operation and we will get you set up.",
+          formFields: [
+            { name: "company", label: "Company name", type: "text", required: true, autoComplete: "organization" },
+            { name: "name", label: "Your name", type: "text", required: true, autoComplete: "name" },
+            { name: "email", label: "Work email", type: "email", required: true, autoComplete: "email" },
+            { name: "phone", label: "Phone", type: "tel", autoComplete: "tel" },
+            { name: "state", label: "State", type: "text" },
+            { name: "units", label: "Units (elevators / escalators)", type: "number" },
+            { name: "seats", label: "Seats (office + field logins)", type: "number" },
+            { name: "equipment", label: "Equipment types", type: "checkbox-group", full: true, options: ["Traction", "Hydraulic", "Roped hydraulic", "Escalator", "Moving walk", "Other"] },
+            { name: "notes", label: "Anything else", type: "textarea", full: true, placeholder: "Routes, current software, timeline, questions." },
+          ],
+          celebrate: "confetti",
+          submitLabel: "Request access",
+          successMessage: "Request received. We will be in touch to get your account set up. A real person reads every request and replies.",
         },
         {
           type: "about",
@@ -1399,7 +1607,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
         },
         {
           // Section index 6: the ONE claims-lint exception lives here ("certified"
-          // in "CIS has not audited or certified us"), path pages[7].sections[6].body.
+          // in "CIS has not audited or certified us"), path pages[12].sections[6].body.
           type: "about",
           heading: "CIS Controls IG1 self-attestation",
           body: "We assess ourselves against the CIS Controls version 8.1, Implementation Group 1 (IG1), the essential cyber-hygiene safeguards aimed at small organizations. This is a self-attestation: we assert it ourselves, and CIS has not audited or certified us. Where a control is provided by our platform rather than built by us, we say so.",

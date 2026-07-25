@@ -2,6 +2,7 @@ import Link from "next/link";
 import { site } from "@/site.config";
 import { navPages, hrefFor, publishedArticles } from "@/lib/config-schema";
 import { themeEnabled, themeToggleJs, navChromeJs } from "@/lib/theme";
+import { resolveHeaderLogo } from "@/lib/brand-logo.mjs";
 
 const telHref = (p: string) => `tel:${p.replace(/[^0-9+]/g, "")}`;
 
@@ -11,7 +12,9 @@ export default function Header() {
   // no theme block emits neither the button nor the script (unchanged).
   const themeOn = themeEnabled(site.theme);
   // Header-nav chrome (NavConfig). All default OFF: a site with no `nav` block emits no condense
-  // class, no progress hairline, no blog link, and no condense script, so the header is unchanged.
+  // class, no progress hairline, no blog link, and no condense script, so the header is unchanged
+  // aside from the mobile overflow fold (teardown P2 7c), which is ON for every site so phone
+  // nav never stays a wrapping flat row.
   const nav = site.nav;
   const condenseOn = Boolean(nav?.condense);
   const progressOn = Boolean(nav?.progress);
@@ -19,18 +22,45 @@ export default function Header() {
   // (the index 404s otherwise), so the nav never links a dead route.
   const blogOn = Boolean(nav?.blogLabel) && publishedArticles(site).length > 0;
   const condenseJs = navChromeJs(nav);
+  // Logo-surface feedback items 1 + 3 (logo-replaces-name, per-theme variant). Absent flags
+  // resolve to the pre-existing shape: a single logo image, alt="", beside the name text.
+  const logo = resolveHeaderLogo(site.brand, site.business.name, themeOn);
   return (
     <>
       {progressOn ? <div className="scroll-progress" aria-hidden="true" /> : null}
       <header className={`site-header${condenseOn ? " site-header--condense" : ""}`}>
         <div className="container site-header__row">
           <Link href="/" className="brand-mark">
-            {site.brand.logoUrl ? <img src={site.brand.logoUrl} alt="" /> : null}
-            <span>{site.business.name}</span>
+            {logo.showImg ? (
+              logo.showDarkVariant ? (
+                <>
+                  <img className="brand-mark__logo--light" src={logo.logoUrl} alt={logo.imgAlt} />
+                  <img className="brand-mark__logo--dark" src={logo.logoUrlDark} alt={logo.imgAlt} />
+                </>
+              ) : (
+                <img src={logo.logoUrl} alt={logo.imgAlt} />
+              )
+            ) : null}
+            {logo.replacesName ? null : <span>{site.business.name}</span>}
           </Link>
-          <nav className="nav" aria-label="Primary">
+          {/* Mobile overflow fold (teardown P2 7c): checkbox + label, no JS required. Wide
+              viewports hide the toggle and keep the nav as a horizontal row. */}
+          <input
+            type="checkbox"
+            id="nav-menu"
+            className="nav-menu__check"
+            aria-label="Open menu"
+            aria-controls="primary-nav"
+          />
+          <label htmlFor="nav-menu" className="nav-menu__toggle">
+            <span className="nav-menu__bars" aria-hidden="true" />
+            <span className="sr-only">Menu</span>
+          </label>
+          <nav className="nav" id="primary-nav" aria-label="Primary">
             {navPages(site).map((p) => (
-              <Link key={p.slug} href={hrefFor(p.slug)}>{p.nav}</Link>
+              <Link key={p.slug} href={hrefFor(p.slug)}>
+                {p.nav}
+              </Link>
             ))}
             {blogOn ? <Link href="/blog">{nav!.blogLabel}</Link> : null}
             {themeOn ? (

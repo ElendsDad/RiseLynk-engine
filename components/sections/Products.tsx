@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Section } from "@/lib/config-schema";
 import { site } from "@/site.config";
+import Prose from "@/components/Prose";
 
 function formatPrice(cents: number, currency: string) {
   return new Intl.NumberFormat("en-US", {
@@ -42,7 +43,11 @@ export default function Products({ section }: { section: Section }) {
       <div className="container">
         {section.subheading ? <p className="eyebrow">{section.subheading}</p> : null}
         {section.heading ? <h2>{section.heading}</h2> : null}
-        {section.body ? <p className="lead">{section.body}</p> : null}
+        {section.body ? (
+          <p className="lead">
+            <Prose text={section.body} />
+          </p>
+        ) : null}
 
         <div className="products" style={{ marginTop: "1.5rem" }}>
           {(section.products ?? []).map((p) => {

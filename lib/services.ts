@@ -16,7 +16,13 @@ export function allServiceLines(site: SiteConfig): ServiceLine[] {
   const seen = new Set<string>();
   const norm = (title: string) => title.trim().toLowerCase();
 
+  // A draft page (PageConfig.draft) is not yet approved to go live, so its service
+  // lines never leak into this collector, and therefore never into either of its two
+  // consumers: the sitewide JSON-LD @graph (lib/seo.ts siteGraphLd) and llms.txt
+  // (lib/llms.ts). Absent draft (the default): every page counts, byte-identical to
+  // this collector's behavior before the flag existed.
   for (const page of site.pages) {
+    if (page.draft) continue;
     for (const section of page.sections) {
       if (section.type === "contractorServices" && section.serviceLines) {
         out.push(...section.serviceLines);
@@ -26,6 +32,7 @@ export function allServiceLines(site: SiteConfig): ServiceLine[] {
   }
 
   for (const page of site.pages) {
+    if (page.draft) continue;
     for (const section of page.sections) {
       if (section.type !== "services" || !section.items) continue;
       for (const item of section.items) {

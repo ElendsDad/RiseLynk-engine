@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { Section } from "@/lib/config-schema";
 import { site } from "@/site.config";
+import Turnstile from "@/components/Turnstile";
+import LeadAttribution from "@/components/LeadAttribution";
 
 // Careers section (optional, default OFF: renders only when config.careers is present and
 // not disabled). Mechanic voice, not HR: role types, the on-call reality said plainly, the
@@ -83,6 +85,7 @@ export default function Careers({ section }: { section: Section }) {
         ) : null}
 
         <form className="leadform careers__apply" onSubmit={onSubmit} noValidate style={{ marginTop: "2rem" }}>
+          <LeadAttribution />
           <div className="field">
             <label htmlFor="cr-name">Name</label>
             <input id="cr-name" name="name" required autoComplete="name" />
@@ -103,6 +106,9 @@ export default function Careers({ section }: { section: Section }) {
             <label htmlFor="cr-note">Anything you want us to know</label>
             <textarea id="cr-note" name="note" rows={4} />
           </div>
+          {site.security?.turnstile?.siteKey ? (
+            <Turnstile siteKey={site.security.turnstile.siteKey} />
+          ) : null}
           <div className="field--full">
             <button className="btn btn--primary" type="submit" disabled={status === "sending"}>
               {status === "sending" ? "Sending..." : c.submitLabel ?? "Apply"}

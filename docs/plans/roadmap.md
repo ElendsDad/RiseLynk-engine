@@ -5,30 +5,113 @@ the discipline that governs releases. Honest by rule: shipped is shipped, backlo
 backlog. Every entry traces to the repo (a tag, `README.md`, `CLAUDE.md`, `package.json`,
 or `.gitignore`) or to the consumer feedback doc named under Backlog. Invent nothing.
 
-- Current tag: **v0.20.0**, **released 2026-07-14** (HSTS baseline header + the hero
-  ghost-CTA light-mode contrast fix), live estate-wide 2026-07-15 (apex, ARK, harborview
-  demo - consumers pinned and verified). On top of v0.19.0 (Wave-2 pack) and v0.18.1
-  (sec-hardening complete: FIX 2 shared atomic rate limiter, FIX 6 hydration /
-  build-boundary hardening + baseline CSP, over v0.18.0's JSON-LD escape, autoresponder
-  gate, markdown XSS, nosniff, Turnstile fail-closed + XOR guard). Every push
-  founder-authorized, one CHANGELOG section per tag.
-- **v0.21.0 staged, not yet tagged** (2026-07-18, branch `claude/engine-polish`): baseline
-  hover/glow micro-interactions (button lift + glow, pricing-tier card elevation, nav
-  underline sweep, link color transition, all reduced-motion-guarded) plus rendering
-  `business.socials[]` (Footer icon row + Organization `sameAs`), closing the founder's
-  "no hover, no glow" pricing-page feedback. All gates green (including the new
-  `npm run test:social`), package.json bumped to 0.21.0, CHANGELOG entry written; the
-  annotated tag itself is a founder step (this session stayed on a feature branch, never
-  pushed main) - cut `git tag -a v0.21.0` after this branch merges to main.
-- Last updated: 2026-07-18.
-- In flight: nothing else staged or held. Phase A is engine-side COMPLETE and riselynk.com
-  is LIVE on the engine at v0.17.0 (cutover done 2026-07-13); the sec-hardening pack
-  (v0.18.0-v0.18.1) landed on top and is default-on hardening, not a Phase-A dependency.
-  Next up: the Kitsap engine-feedback-v0.12.0 asks (items 16-36), including #36, the
-  engine-baked checkout-success "Thank you!" exclamation (a real engine copy-discipline
-  bug to fix), and rolling the v0.17.0+ craft to the Kitsap fleet (optional, per-site;
-  the gutter-services template already shipped fleet-side on v0.17.0, see
-  `maxlynk-services/docs/plans/roadmap.md`).
+- Current tag: **v0.24.1**, **tagged on `main` at `a769a69`** (verified with
+  `git ls-remote --tags origin` on 2026-07-21: `v0.24.0` points at `16da34e` and
+  `v0.24.1` at `a769a69`, the `origin/main` tip, so the two blocks below that this file
+  previously carried as staged are RELEASED; the founder cut both tags after the
+  2026-07-20 staging, in v0.24.0-then-v0.24.1 order, heal word 2026-07-20). On top of
+  v0.23.0 (**released** at `e1926cd`: structured hours), v0.22.0 (`3b4cc19`), v0.21.0
+  (**released 2026-07-18** at `bf08df4`: baseline hover/glow micro-interactions plus
+  rendering `business.socials[]`), v0.20.0 (HSTS baseline header + the hero ghost-CTA
+  light-mode contrast fix), v0.19.0 (Wave-2 pack), and v0.18.1 (sec-hardening complete:
+  FIX 2 shared atomic rate limiter, FIX 6 hydration / build-boundary hardening +
+  baseline CSP, over v0.18.0's JSON-LD escape, autoresponder gate, markdown XSS,
+  nosniff, Turnstile fail-closed + XOR guard). Every push founder-authorized, one
+  CHANGELOG section per tag.
+- **v0.22.0 RELEASED** (staged 2026-07-19 on the expressive-pack integration branch;
+  tag verified on origin 2026-07-20 at `3b4cc19`): seven additive feedback closures (logo
+  replaces name, a footer logo slot, a per-theme logo variant, a per-page draft flag,
+  `FeatureItem.who`, markdown-style inline links in prose/FAQ copy, and a dedicated
+  `addons` add-on/priced-menu section decoupled from the pricing section's Offer
+  JSON-LD) plus the first two pieces of the expressive pack (the `storyGraph`
+  node-graph narrative section and the generic `Section.style` presentation-variant
+  field, `"ribbon"` and `"editorial"`). All gates green (including the six new suites:
+  `npm run test:brand-logo`, `test:inline-links`, `test:page-draft`, `test:story-graph`,
+  `test:style-variant`, `test:addons`), `package.json` bumped to 0.22.0, CHANGELOG entry
+  written. The `ribbon`/`editorial` variants were built from the pack spec's written
+  description only; the original gallery source was unreachable from this environment,
+  so the founder should diff the rendered output against that source at integration
+  before treating the visual match as final. The `addons` section deliberately does not
+  honor `Section.style`: neither variant's CSS targets markup this section shares, so it
+  was left out of the `STYLE_HONORS` map rather than forced in, and an unhonored type
+  ignores the field safely by design.
+  Founder steps done (merged and tagged); per-site opt-in remains per the upgrade
+  discipline (nothing here is default-on for any existing config).
+- **v0.23.0 RELEASED** (staged 2026-07-19 on the same integration branch; tag verified
+  on origin 2026-07-20 at `e1926cd`): structured hours, the dedicated release the #27 triage
+  below sized. `business.openingHours` (days/opens/closes windows, `allDay`, overnight
+  and split schedules) feeds `openingHoursSpecification` on the LocalBusiness node, the
+  llms.txt "Hours" line, and the visible Contact hours line from ONE builder
+  (`lib/hours-ld.mjs`, fail-closed: a malformed entry withholds the whole schedule and
+  the legacy `business.hours` string takes over), plus `business.emergency247` (the
+  feedback's emergency flag, claims-walled to flag + phone) emitting the emergency
+  `ContactPoint`. New gate `npm run test:hours`; `package.json` bumped to 0.23.0;
+  CHANGELOG entry written; elevator-demo opts in. Founder steps done: both tags verified
+  on origin in v0.22.0-then-v0.23.0 order.
+- **v0.24.0 RELEASED** (staged 2026-07-20 on branch
+  `claude/engine-v0.21-feedback-pack-rxrett`; merge `16da34e`, tag verified on origin
+  2026-07-21): the remaining high-leverage Kitsap engine-feedback-v0.12.0 asks, one
+  commit per feature. #18 gallery captions + a brand-neutral before/after pair variant
+  (`lib/gallery.mjs`, fail-safe by documented choice: a malformed pair is dropped, never
+  a partial figure); #29 `business.schemaType` LocalBusiness subtype behind a frozen
+  fourteen-entry allowlist (`lib/business-type.mjs`, fail-closed by construction: exact
+  match on an already-LocalBusiness site or today's `@type` byte for byte); #19
+  per-service detail-page Service JSON-LD (`PageConfig.service` +
+  `lib/service-page-ld.mjs`, rating through the EXISTING `withRatingLd` claims wall, null
+  on a domain-less build, nothing on a draft page); and #24's custom-field seam proven
+  end to end (investigation found `Section.formFields` already expressed the feedback's
+  whole wanted vocabulary with no lead-losing bug, so it gained the dedicated
+  `test:lead-fields` gate and corrected doc comments, zero logic change). Four new gates
+  (`test:gallery`, `test:schema-type`, `test:service-page`, `test:lead-fields`);
+  `package.json` bumped to 0.24.0; CHANGELOG entry written; no example config touched,
+  and the additive contract proven by rebuilding all six demos + both hydrated fixtures
+  against normalized rendered-output snapshots taken at v0.23.0, plus a plain-gallery
+  probe config (no demo exercises the `gallery` section, a coverage gap an adversarial
+  verification pass surfaced by catching a flight-payload null child there; fixed and
+  probe-locked in the verify commits). Known follow-up worth its own pass: the
+  byte-identical-absent guarantee is enforced today by the manual release snapshot
+  practice, which is coverage-dependent (it sees only sections the demos exercise); an
+  automated rendered-output diff gate, or a demo config that exercises every section
+  type, would close the class for good. Founder steps done (merged and tagged); per-site
+  opt-in remains per the upgrade discipline.
+- **v0.24.1 RELEASED** (staged 2026-07-20 on branch `claude/engine-v0241-hardening-knobs`
+  over v0.24.0; merge + tag `a769a69`, verified on origin 2026-07-21, founder heal word
+  2026-07-20): the engine-side fixes for maxlynk-services
+  `docs/engine-feedback-v0.20.0.md` items #30 and #31 (NOT the same numbering as the
+  engine-feedback-v0.12.0 backlog referenced below - a separate, newer feedback doc,
+  filed 2026-07-20 off the live ryan-dehart/ARK Fabrication incident). #31a
+  config-extendable CSP `connect-src` (`security.connectSrc: string[]`, `lib/csp.mjs`,
+  wired by `next.config.ts` - the file was renamed from `.mjs` because this feature needs
+  the active site config's real values at build time; see the CHANGELOG entry for why
+  that is safe and version-independent). #30a a placeholder-email build wall
+  (`lib/delivery-guard.mjs`): FAILs on genuine production intent (a real domain, not
+  draft), WARNs everywhere else including this engine's own `.example`-domained demo and
+  hydrated-fixture builds. #30c an operator-facing delivery-wiring log line plus a new
+  `deliveryStatus: "black_hole" | "ok"` field on `lib/contact-intake.mjs`'s `submit()`
+  result (naming/visibility only, routes unchanged). #30b (a deploy-time `vercel env ls`
+  check) deliberately NOT built here - it needs visibility into the consumer's Vercel
+  project this engine does not have during a `next build`; tracked as a
+  maxlynk-services `tools/engine-build.mjs --deploy` follow-up. Two new gates
+  (`test:csp`, `test:delivery-guard`); `test:headers` and `test:contact` extended;
+  `package.json` bumped to 0.24.1; CHANGELOG entry written; no example config touched,
+  additive contract proven (29/29 suites, 1260 checks, rendered output byte-identical).
+  Founder steps done (merged and tagged). Consumer follow-up already started on
+  maxlynk-services: ryan-dehart re-pinned to v0.24.1 with a `security.connectSrc` entry
+  for its control-plane endpoint (heal chain live).
+- Last updated: 2026-07-21.
+- In flight: nothing staged or held on a release branch. Phase A is engine-side COMPLETE
+  and riselynk.com is LIVE on the engine at v0.17.0 (cutover done 2026-07-13); the
+  sec-hardening pack (v0.18.0-v0.18.1) landed on top and is default-on hardening, not a
+  Phase-A dependency. Next up: the still-deferred engine-feedback-v0.12.0 items (#23
+  credential lint exemption, #26 announcement bar, #28 rating provenance, #30-#35 - that
+  doc's own numbering, distinct from the v0.20.0-feedback #30/#31 that v0.24.1 closed),
+  and rolling the accumulated releases to the Kitsap fleet (optional, per-site; most of
+  the fleet still pins v0.20.0 on maxlynk-services `main`, with a fleet re-pin to
+  v0.24.0 delivered on that consumer's `claude/fleet-repin-v0240` awaiting merge, and
+  ryan-dehart already on v0.24.1 - see `maxlynk-services/docs/plans/roadmap.md`). #36's
+  checkout-success exclamation was already fixed in the polish/feedback-batch pass (see
+  the disposition below). Branch `claude/roadmap-refresh-0716` is
+  **retired-superseded** (older truth-capture line; this file is the status of record).
 - Full tour: `README.md`. Working map: `CLAUDE.md`. Per-tag ledger: `../../CHANGELOG.md`.
 
 ## Recently shipped: the fidelity pack, v0.15.0 through v0.17.0 (all released 2026-07-13)
@@ -116,7 +199,9 @@ Tagged and pushed to `origin/main`.
   routes. `productLd()` stays exported for hand use.
 - **External-config entry point** (feedback item 5): `SITE_CONFIG_PATH` resolves the
   active-site seam to a config outside the engine checkout, so a consumer never rewrites the
-  tracked `site.config.ts` around a build. A webpack exact-match alias in `next.config.mjs`.
+  tracked `site.config.ts` around a build. A webpack exact-match alias in `next.config.ts`
+  (renamed from `.mjs` at v0.24.1; the webpack seam itself is unchanged, still keyed off
+  `SITE_CONFIG_PATH`).
 - **Config-lint entry point** (feedback item 7): `tools/lint-config.mjs` (+ `npm run
   lint:config`) is the blessed, stable lint surface, re-exporting `lintConfig` from the
   hydrator so a consumer depends on a contract, not an internal.
@@ -219,12 +304,16 @@ upgrade, per the release discipline below.
   - **#16 service area, #17 visible review stars** - SHIPPED as v0.19.0
     (`serviceArea` section + `lib/area-ld.mjs`; `lib/stars.mjs` + `StarRating.tsx`).
     Already closed before this triage; listed for completeness.
-  - **#18 captioned/before-after gallery** - DEFER. A real schema + vocabulary design
-    (captions on `gallery`, a brand-neutral before/after variant distinct from the
-    elevator-only `modGallery` idiom); sized as its own release.
-  - **#19 per-service detail pages** - DEFER. Templating an indexable per-service page
-    is a real feature (SEO payoff is the point); #25 below is the additive seam it
-    needs, now shipped.
+  - **#18 captioned/before-after gallery** - SHIPPED as v0.24.0 (tagged 2026-07-20;
+    see the release entry at the top). Captions on `gallery` images plus the
+    brand-neutral `Section.pairs` before/after variant, distinct from the
+    elevator-only `modGallery` idiom; gate `npm run test:gallery`. Was: DEFER, sized
+    as its own release - and it got one.
+  - **#19 per-service detail pages** - SHIPPED as v0.24.0 (tagged 2026-07-20). The SEO
+    layer the item actually needed: `PageConfig.service` emits a page-level Service
+    JSON-LD (claims-walled rating home included) on the page #25's `href` seam links
+    into; authoring the page itself stays ordinary `PageConfig` sections. Gate
+    `npm run test:service-page`. Was: DEFER.
   - **#20 sitemap ignores draft state, #21 domain-less sitemap emits relative `<loc>`**
     - FIXED. `app/sitemap.ts` now returns `[]` on `isIndexable(site) === false` (the
       same guard `app/robots.ts` already used), so a not-indexable build emits an empty,
@@ -239,26 +328,50 @@ upgrade, per the release discipline below.
     Arborist") - DEFER. A real, security-adjacent policy change (an exemption
     mechanism for the compliance regex needs its own design and its own tests, not a
     quick carve-out); a client-visible copy-discipline change besides.
-  - **#24 leadform field set: property address** - FIXED (the piece the feedback itself
-    called "trivially additive"). `Section.fields` gained `"building"`, reusing the
-    SAME canonical field `RequestService.tsx` and `lib/contact-intake.mjs` already
-    validate, label, and email - zero intake changes, just a leadform opt-in. The
-    photo/attachment seam and the generic custom-field seam stay deferred (real design
-    work).
+  - **#24 leadform field set** - CLOSED except the photo seam (corrected 2026-07-20;
+    the prior text here understated what already existed). The address piece shipped
+    earlier (`Section.fields` gained `"building"`, reusing the canonical intake field).
+    The generic label+type custom-field seam was NOT still deferred: it already existed
+    as `Section.formFields` (`LeadField[]`, from the v0.16.0 request-access harvest,
+    rendered no-JS-safe with or without `modal: true`), and a 2026-07-20 investigation
+    traced the whole wanted vocabulary (urgency select, budget range, timeframe,
+    vehicle year/make/model) through the real intake with no lead-losing bug. It is now
+    gated end to end (`npm run test:lead-fields`, SHIPPED as v0.24.0) with the schema
+    doc comments corrected to the verified contract. Only the photo/attachment seam
+    stays deferred (real design work, per the feedback's own sizing).
   - **#25 brochure `services` items have no `href`** - FIXED. `FeatureItem.href`
     renders the same "Learn more" link `ServiceLine.href` already does (`.svc-card__link`
     reused verbatim); the natural additive seam for #19.
-  - **#26 sitewide announcement/notice bar** - DEFER. A new claims-walled,
-    time-bounded, dismissible surface; sized as its own release.
-  - **#27 structured hours (`openingHoursSpecification`)** - DEFER. A real JSON-LD
-    surface (days/opens/closes + an emergency flag) touching `lib/seo.ts`; sized as its
-    own release.
+  - **#26 sitewide announcement/notice bar** - BUILT (branch claude/announcement-bar,
+    2026-07-20), exactly the release the deferral asked for. `announcement?` in the
+    schema (AnnouncementConfig): required start/end dates, optional href/linkLabel,
+    dismissible (default on) with a per-announcement localStorage ack. One pure
+    fail-closed helper (`lib/announcement.mjs`: window math, resolve/normalize, lint
+    targets) feeds the client component (`components/Announcement.tsx`, role=status,
+    labeled dismiss, auto-hides against the viewer's clock so a static build expires
+    with no rebuild) and the build-time claims wall. The text and link label pass
+    through the engine's canonical `lintString` in next.config.ts; a claims-violating
+    announcement FAILs the build. Gate `npm run test:announcement` (52 checks). Additive:
+    an unconfigured site's visible DOM, @graph, and llms.txt are byte-identical (proven
+    by an A/B build of the elevator demo against origin/main; the only rendered-output
+    delta is one `null` array entry in the RSC flight, the same conditional-null idiom
+    cookieNotice and craftMotion already use in the layout body, plus the expected
+    globals.css asset-hash change). Was: DEFER, sized as its own release - and it got one.
+  - **#27 structured hours (`openingHoursSpecification`)** - SHIPPED as v0.23.0
+    (tagged; see the release ledger at the top). `business.openingHours` +
+    `business.emergency247`, one shared fail-closed builder (`lib/hours-ld.mjs`)
+    feeding the JSON-LD, llms.txt, and the visible Contact line; gate
+    `npm run test:hours`. Was: DEFER, sized as its own release - and it got one.
   - **#28 rating/review provenance fields** (`source`/`profileUrl`/`url`) - DEFER.
     Plausibly small, but it is a claims-wall surface (provenance is exactly what the
     wall exists to strengthen) and deserves its own gate, not a quick field add.
-  - **#29 LocalBusiness subtype control** (`business.schemaType` allowlist) - DEFER.
-    Touches the `@graph` node builder directly; an allowlist mistake ships wrong
-    structured data silently, so it gets its own test pass rather than riding this batch.
+  - **#29 LocalBusiness subtype control** (`business.schemaType` allowlist) - SHIPPED
+    as v0.24.0 (tagged 2026-07-20), with exactly the dedicated test pass the deferral
+    asked for: a frozen fourteen-entry allowlist in `lib/business-type.mjs`,
+    fail-closed resolution (exact match on an already-LocalBusiness site, the resolver
+    returns the list's own entry, everything else keeps today's `@type` byte for byte),
+    and gate `npm run test:schema-type` (119 assertions incl. lookalike/injection
+    inputs). Was: DEFER.
   - **#30 honest price-framing surfaces** (`priceRange`/`paymentAccepted`, `priceNote`,
     a typed fee disclosure) - DEFER. Explicitly three separate shapes in the feedback
     itself; not one small change.

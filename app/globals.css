@@ -129,15 +129,74 @@ p { margin: 0 0 1rem; }
 .nav a:not(.btn):hover::after,
 .nav a:not(.btn):focus-visible::after { right: 0; }
 .nav__cta { margin-left: 0.5rem; }
+
+/* Mobile overflow fold (teardown P2 7c). Checkbox + label, no JS. Wide viewports
+   hide the toggle and keep the horizontal nav; narrow viewports park links in a
+   full-width panel under the header row. */
+.nav-menu__check { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.nav-menu__toggle {
+  display: none;
+  align-items: center; justify-content: center;
+  width: 44px; height: 44px; margin-left: auto;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--color-bg); color: var(--color-text); cursor: pointer;
+}
+.nav-menu__bars,
+.nav-menu__bars::before,
+.nav-menu__bars::after {
+  display: block; width: 18px; height: 2px;
+  background: currentColor; border-radius: 1px;
+  position: relative;
+}
+.nav-menu__bars::before,
+.nav-menu__bars::after { content: ""; position: absolute; left: 0; }
+.nav-menu__bars::before { top: -6px; }
+.nav-menu__bars::after { top: 6px; }
+.nav-menu__check:checked + .nav-menu__toggle .nav-menu__bars { background: transparent; }
+.nav-menu__check:checked + .nav-menu__toggle .nav-menu__bars::before { top: 0; transform: rotate(45deg); }
+.nav-menu__check:checked + .nav-menu__toggle .nav-menu__bars::after { top: 0; transform: rotate(-45deg); }
 @media (max-width: 720px) {
-  .nav { gap: 0.9rem; font-size: 0.9rem; flex-wrap: wrap; justify-content: flex-end; }
-  .nav__cta { display: none; }
+  .site-header__row { flex-wrap: wrap; }
+  .nav-menu__toggle { display: inline-flex; }
+  .nav {
+    display: none;
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.5rem 0 0.75rem;
+    border-top: 1px solid var(--line);
+    margin-top: 0.35rem;
+  }
+  .nav-menu__check:checked ~ .nav { display: flex; }
+  .nav a:not(.btn) {
+    padding: 0.75rem 0.15rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  }
+  .nav a:not(.btn)::after { display: none; }
+  .nav .theme-btn { align-self: flex-start; margin: 0.5rem 0; }
+  .nav__cta { display: inline-flex; margin: 0.75rem 0 0; width: fit-content; }
 }
 
 /* Hero */
-.hero { position: relative; color: #fff; background: var(--color-primary); }
-.hero--image { background-size: cover; background-position: center; }
-.hero__overlay { background: linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 78%, transparent), color-mix(in srgb, var(--color-primary) 92%, transparent)); }
+.hero { position: relative; color: #fff; background: var(--color-primary); overflow: hidden; }
+/* LCP photo is a real <img> (components/sections/Hero.tsx), not CSS background-image,
+   so the preload scanner can see it and fetchpriority/srcset/modern formats can apply. */
+.hero__media { position: absolute; inset: 0; display: block; margin: 0; }
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.hero__overlay {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 78%, transparent), color-mix(in srgb, var(--color-primary) 92%, transparent));
+}
 .hero__inner { padding-block: clamp(4rem, 12vw, 8rem); max-width: 46rem; }
 .hero h1 { color: #fff; }
 .hero .lead { color: rgba(255,255,255,0.9); }
@@ -166,14 +225,60 @@ p { margin: 0 0 1rem; }
 .card .icon--builtin svg { display: block; width: 1.6rem; height: 1.6rem; }
 .card h3 { margin-top: 0.6rem; }
 .card p { color: var(--muted); margin: 0; }
+/* FeatureItem.who (engine feedback #5): a one-line audience note, mirrors .plan__who's
+   treatment (bold, full ink color, not muted like the body copy). Specificity matches
+   ".card p" via the same class+type combination so it wins regardless of source order. */
+.card p.card__who { color: inherit; font-weight: 600; margin: 0.25rem 0 0.5rem; }
 
 /* About */
 .about { display: grid; gap: 2rem; grid-template-columns: 1fr; align-items: center; }
 @media (min-width: 820px) { .about { grid-template-columns: 1.1fr 0.9fr; } }
+/* Real width/height attributes are stamped from image headers (lib/image-size.mjs).
+   Keep an aspect-ratio fallback so a missing/unreadable file still reserves space. */
+.about__img {
+  border-radius: var(--radius);
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
 
 /* Gallery */
 .gallery { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
 .gallery img { border-radius: var(--radius); aspect-ratio: 4 / 3; object-fit: cover; width: 100%; }
+/* Gallery captions (feedback item #18): a captioned image gets the SAME img treatment as
+   an uncaptioned one, wrapped in a figure so the caption sits directly under its photo.
+   Colors derive from the existing muted/line tokens, never a baked color. */
+.gallery__figure { margin: 0; }
+.gallery__figure img { display: block; }
+.gallery__figure figcaption { color: var(--muted); font-size: 0.9rem; margin-top: 0.4rem; }
+
+/* Gallery before/after pairs (feedback item #18): brand-neutral work pairs, independent of
+   the plain image grid above. Mobile-first: each pair's two images stack narrow and go
+   two-up from ~640px; the pair cards themselves are always a responsive grid so multiple
+   pairs wrap. */
+.gallery-pairs { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.gallery-pair { background: var(--color-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; }
+.gallery-pair__images { display: grid; gap: 0.5rem; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .gallery-pair__images { grid-template-columns: 1fr 1fr; } }
+.gallery-pair__images figure { margin: 0; position: relative; }
+.gallery-pair__images img { border-radius: var(--radius); aspect-ratio: 4 / 3; object-fit: cover; width: 100%; display: block; }
+.gallery-pair__tag {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--color-primary);
+  border-radius: 0.25rem;
+  padding: 0.15rem 0.45rem;
+}
+.gallery-pair__caption { margin: 0.6rem 0 0; font-weight: 600; }
+.gallery-pair__note { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.9rem; }
 
 /* Testimonials */
 .quotes { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
@@ -247,6 +352,37 @@ p { margin: 0 0 1rem; }
 /* Booking embed (lead-gen) */
 .booking-embed { width: 100%; min-height: 640px; border: 1px solid var(--line); border-radius: var(--radius); }
 
+/* Capability / pricing comparison matrices (teardown P2 7g + 2a) */
+.matrix-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.matrix {
+  width: 100%; border-collapse: collapse; font-size: 0.95rem;
+  min-width: 28rem;
+}
+.matrix th, .matrix td {
+  border: 1px solid var(--line); padding: 0.75rem 0.9rem;
+  text-align: left; vertical-align: top;
+}
+.matrix thead th {
+  background: var(--surface); font-weight: 700; color: var(--color-primary);
+}
+.matrix tbody th {
+  font-weight: 600; color: var(--color-text); background: color-mix(in srgb, var(--surface) 70%, var(--color-bg));
+  white-space: nowrap;
+}
+.matrix__corner { width: 12rem; }
+.matrix__cell { text-align: center; color: var(--muted); }
+.matrix__cell--yes { color: var(--color-primary); font-weight: 700; }
+.matrix__cell--no { color: transparent; }
+
+/* Privacy-first video embed (teardown P2 7j) */
+.video-embed {
+  position: relative; width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+  background: var(--surface);
+}
+.video-embed__frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
 /* Products (simple-commerce) */
 .products { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .product { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--color-bg); }
@@ -275,7 +411,8 @@ p { margin: 0 0 1rem; }
 .trustbar__label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.72); }
 .trustbar__value { font-weight: 700; }
 .trustbar__value--link { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
-.trustbar__verify { color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+.trustbar__verify,
+.trustbar__review { color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 
 /* Emergency call bar (persistent, mobile-first) */
 .callbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; background: var(--color-accent); color: #16181d; border-top: 2px solid rgba(0,0,0,0.15); box-shadow: 0 -6px 20px rgba(0,0,0,0.14); }
@@ -309,6 +446,31 @@ p { margin: 0 0 1rem; }
   .cookie-bar { flex-direction: column; align-items: stretch; text-align: center; }
 }
 
+/* Sitewide announcement bar (config-gated, time-bounded, dismissible; themes off the
+   two brand colors). Floats at the top like the cookie notice floats at the bottom, so
+   it never shifts page layout when it appears after mount. */
+.announcement-bar {
+  position: fixed; left: 1rem; right: 1rem; top: 1rem; z-index: 71;
+  max-width: 880px; margin-inline: auto;
+  display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+  background: var(--color-primary); color: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+  padding: 0.75rem 1.1rem;
+}
+.announcement-bar__msg { flex: 1 1 320px; min-width: 240px; margin: 0; font-size: 0.94rem; }
+.announcement-bar__link { color: #fff; font-weight: 700; text-decoration: underline; }
+.announcement-bar__close {
+  flex: 0 0 auto; margin-left: auto; background: transparent; border: 0; color: #fff;
+  font-size: 1.4rem; line-height: 1; padding: 0 0.35rem; cursor: pointer; border-radius: 6px;
+}
+.announcement-bar__close:hover { background: rgba(255,255,255,0.18); }
+.announcement-bar__close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+@media (max-width: 560px) {
+  .announcement-bar { flex-direction: column; align-items: stretch; text-align: center; }
+  .announcement-bar__close { margin-left: 0; align-self: flex-end; }
+}
+
 /* Customer-portal door */
 .portal-door { display: grid; gap: 2rem; grid-template-columns: 1fr; align-items: center; }
 @media (min-width: 820px) { .portal-door { grid-template-columns: 1fr 1fr; } }
@@ -327,6 +489,23 @@ p { margin: 0 0 1rem; }
 .faq__qa:last-child { border-bottom: 1px solid var(--line); }
 .faq__q { font-weight: 700; color: var(--color-primary); margin: 0 0 0.4rem; font-size: 1.05rem; }
 .faq__a { margin: 0; color: var(--muted); }
+/* FAQ collapse variant (teardown P2 7b): native details/summary. Absent style keeps
+   the flat .faq__qa list above. */
+.faq--collapse .faq__qa--details { padding: 0; }
+.faq--collapse .faq__q {
+  list-style: none; cursor: pointer;
+  padding: 1.15rem 1.6rem 1.15rem 0; margin: 0;
+  position: relative;
+}
+.faq--collapse .faq__q::-webkit-details-marker { display: none; }
+.faq--collapse .faq__q::after {
+  content: "";
+  position: absolute; right: 0.15rem; top: 50%; width: 0.5rem; height: 0.5rem;
+  border-right: 2px solid var(--color-primary); border-bottom: 2px solid var(--color-primary);
+  transform: translateY(-70%) rotate(45deg);
+}
+.faq--collapse details[open] > .faq__q::after { transform: translateY(-20%) rotate(225deg); }
+.faq--collapse .faq__a { padding: 0 0 1.15rem; }
 
 /* Careers (optional) */
 .careers__reality { display: grid; gap: 1.5rem; grid-template-columns: 1fr; margin-top: 2rem; }
@@ -339,6 +518,58 @@ p { margin: 0 0 1rem; }
 .records__item { background: var(--color-bg); border: 1px solid var(--line); border-left: 4px solid var(--color-primary); border-radius: var(--radius); padding: 1.4rem; }
 .records__item h3 { margin-top: 0; }
 .records__item p { color: var(--muted); margin: 0; }
+
+/* Dense resource / link directory (teardown 2026-07-24). Tighter minmax and padding
+   than .records so more state/authority cards fit per viewport. Opt-in via section
+   type "directory"; configs that never use it are unchanged. */
+.directory {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  margin-top: 1.5rem;
+}
+.directory__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: var(--color-bg);
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 2px);
+  padding: 0.85rem 0.95rem;
+  min-height: 0;
+}
+.directory__meta {
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.directory__title {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+.directory__body {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.directory__link {
+  margin-top: auto;
+  padding-top: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.directory__link:hover { text-decoration: underline; }
 
 /* Modernization before/after gallery (optional) */
 .mods { display: grid; gap: 1.5rem; }
@@ -353,12 +584,37 @@ p { margin: 0 0 1rem; }
 
 /* Blog */
 .bloglist { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-.blogcard { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.5rem; background: var(--color-bg); }
+.bloglist--featured { grid-template-columns: 1fr; }
+.bloggroup { margin-top: 2.5rem; }
+.bloggroup__title { font-size: 1.25rem; margin: 0 0 1rem; }
+.blogcard { position: relative; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); padding: 1.5rem; padding-bottom: 2.6rem; background: var(--color-bg); }
+.blogcard--featured { padding: 2rem; padding-bottom: 2.8rem; }
+.blogcard--featured h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); }
+.blogcard__category {
+  margin: 0 0 0.5rem; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--color-accent);
+}
 .blogcard h2 { font-size: 1.35rem; margin-bottom: 0.5rem; }
 .blogcard h2 a { color: var(--color-text); text-decoration: none; }
 .blogcard h2 a:hover { color: var(--color-primary); }
 .blogcard p { color: var(--muted); }
 .blogcard__more { font-weight: 700; }
+/* Read-time banner: bottom strip on the card (teardown 2026-07-24). Absent when the
+   article has no measurable body text, so empty/stub articles stay banner-free. */
+.blogcard__readtime {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  margin: 0;
+  padding: 0.4rem 1.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-bg));
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 var(--radius) var(--radius);
+}
 
 /* Article */
 .article { max-width: 760px; }
@@ -734,6 +990,45 @@ p { margin: 0 0 1rem; }
 .plan__cta { margin-top: auto; align-self: flex-start; }
 
 /* ============================================================================
+   Add-on / priced-menu section (feedback item 7). A SECOND priced-menu surface,
+   deliberately on its OWN selectors (not .plans/.plan above) so it never collides
+   with the pricing section's markup or its Offer JSON-LD collector
+   (lib/seo.ts allPricingTiers is type-gated on "pricing" only, see that function's
+   doc comment). Theme-tokened the same way as .plan: no baked color, everything
+   derives from the two brand colors plus the shared surface/line/muted tokens.
+   The hover lift matches the v0.21 .plan baseline byte-for-byte (no new motion
+   values introduced), fine-pointer gated and locally neutralized under
+   prefers-reduced-motion (the master guard above kills transition/animation
+   duration but not a hover-triggered transform, so this carries its own reduce
+   block, same convention as .btn/.plan/.grid--ribbon).
+   ============================================================================ */
+.addons-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: start; }
+.addon {
+  display: flex; flex-direction: column; gap: 0.4rem;
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 1.5rem 1.35rem;
+  background: var(--color-bg);
+  transition: transform 0.26s var(--ease-craft, ease), border-color 0.26s var(--ease-craft, ease),
+    box-shadow 0.26s var(--ease-craft, ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .addon:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--color-accent) 40%, var(--line));
+    box-shadow: 0 22px 46px -24px color-mix(in srgb, var(--color-text) 30%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--color-accent) 14%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .addon:hover { transform: none; }
+}
+.addon__row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+.addon__name { margin: 0; font-size: 1.05rem; }
+.addon__price { margin: 0; font-weight: 800; font-size: 1.2rem; color: var(--color-primary); white-space: nowrap; }
+.addon__desc { margin: 0; color: var(--muted); font-size: 0.95rem; }
+.addon__note { margin: 0; font-size: 0.8rem; color: var(--muted); }
+.addon__cta { margin-top: 0.5rem; align-self: flex-start; }
+
+/* ============================================================================
    R5.1 - craft + motion layer (harvested from the 2026-07-12 design bundle).
    Config-gated and brand-neutral: renders only under an opt-in [data-craft~="..."]
    token (glass / aurora / magnetic / hero-motion) or a per-section flag
@@ -766,7 +1061,15 @@ p { margin: 0 0 1rem; }
   --rl-status-red-bg: color-mix(in srgb, #b25050 16%, var(--color-bg));
 }
 
-/* --- glassHover: opt-in card treatment (data-craft "glass") --- */
+/* --- glassHover: opt-in card treatment (data-craft "glass") ---
+   ROOT-CAUSE FIX (teardown 2026-07-24): Chromium fails (and can corrupt compositor
+   state until a full reload) when the SAME element carries both `overflow: hidden`
+   and `backdrop-filter`. The previous rule set overflow:hidden on the card AND
+   applied backdrop-filter on the card's :hover - compounded by the sticky header's
+   always-on blur and by .product/.mod base rules that already set overflow:hidden.
+   Fix: never put overflow:hidden on a glass-treated card; put the blur on ::after
+   (a leaf pseudo, so it does not become a nested Backdrop Root that kills the
+   header glass); keep the pointer-glow on ::before. Absent craft.glass is unchanged. */
 [data-craft~="glass"] .card,
 [data-craft~="glass"] .quote,
 [data-craft~="glass"] .product,
@@ -775,7 +1078,8 @@ p { margin: 0 0 1rem; }
 [data-craft~="glass"] .svc-card,
 [data-craft~="glass"] .mod {
   position: relative;
-  overflow: hidden;
+  /* Explicit override of .product / .mod base overflow:hidden - required for blur. */
+  overflow: visible;
   transition: transform 0.3s var(--ease-craft), border-color 0.22s var(--ease-craft),
     box-shadow 0.22s var(--ease-craft), background 0.22s var(--ease-craft);
 }
@@ -791,6 +1095,7 @@ p { margin: 0 0 1rem; }
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
+  z-index: 1;
   opacity: 0;
   transition: opacity 0.35s var(--ease-craft);
   background: radial-gradient(
@@ -798,6 +1103,29 @@ p { margin: 0 0 1rem; }
     var(--rl-glass-glow, transparent),
     transparent 70%
   );
+}
+/* Blur lives on ::after (not the card itself) so overflow:hidden ancestors and the
+   sticky header's own backdrop-filter cannot form a nested Backdrop Root that drops
+   glass sitewide until reload. */
+[data-craft~="glass"] .card::after,
+[data-craft~="glass"] .quote::after,
+[data-craft~="glass"] .product::after,
+[data-craft~="glass"] .blogcard::after,
+[data-craft~="glass"] .records__item::after,
+[data-craft~="glass"] .svc-card::after,
+[data-craft~="glass"] .mod::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.22s var(--ease-craft);
+  background: var(--rl-glass-fill);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow: inset 0 1px 0 var(--rl-glass-edge);
 }
 @media (hover: hover) and (pointer: fine) {
   [data-craft~="glass"] .card:hover::before,
@@ -809,6 +1137,15 @@ p { margin: 0 0 1rem; }
   [data-craft~="glass"] .mod:hover::before {
     opacity: 1;
   }
+  [data-craft~="glass"] .card:hover::after,
+  [data-craft~="glass"] .quote:hover::after,
+  [data-craft~="glass"] .product:hover::after,
+  [data-craft~="glass"] .blogcard:hover::after,
+  [data-craft~="glass"] .records__item:hover::after,
+  [data-craft~="glass"] .svc-card:hover::after,
+  [data-craft~="glass"] .mod:hover::after {
+    opacity: 1;
+  }
   [data-craft~="glass"] .card:hover,
   [data-craft~="glass"] .quote:hover,
   [data-craft~="glass"] .product:hover,
@@ -818,12 +1155,21 @@ p { margin: 0 0 1rem; }
   [data-craft~="glass"] .mod:hover {
     transform: translateY(-2px);
     border-top-color: var(--rl-glass-line-top);
-    background: var(--rl-glass-fill);
-    -webkit-backdrop-filter: blur(12px) saturate(1.4);
-    backdrop-filter: blur(12px) saturate(1.4);
-    box-shadow: var(--rl-shadow-md), inset 0 1px 0 var(--rl-glass-edge);
+    background: transparent;
+    box-shadow: var(--rl-shadow-md);
   }
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    [data-craft~="glass"] .card:hover::after,
+    [data-craft~="glass"] .quote:hover::after,
+    [data-craft~="glass"] .product:hover::after,
+    [data-craft~="glass"] .blogcard:hover::after,
+    [data-craft~="glass"] .records__item:hover::after,
+    [data-craft~="glass"] .svc-card:hover::after,
+    [data-craft~="glass"] .mod:hover::after {
+      background: var(--color-bg);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
     [data-craft~="glass"] .card:hover,
     [data-craft~="glass"] .quote:hover,
     [data-craft~="glass"] .product:hover,
@@ -1200,3 +1546,239 @@ p { margin: 0 0 1rem; }
 @media (prefers-reduced-motion: reduce) {
   .scroll-progress { display: none; }
 }
+
+/* --- Logo-surface feedback items: header logo-replaces-name, footer logo slot, per-theme
+   logo variant (brand.logoUrlDark / footer.logoUrlDark; lib/brand-logo.mjs resolves which of
+   these classes actually render). Sizing for the header pair rides the existing `.brand-mark
+   img` rule above (a class-qualified <img> is still a plain img descendant); the footer logo
+   has no prior sizing so it gets its own block here. The dark-variant swap is pure CSS, no
+   added JS: both images are always server-rendered together, and [data-theme] on <html>
+   (set pre-paint by the boot script, see lib/theme-tokens.mjs bootScript) picks exactly one,
+   so there is never a flash. A site with no `theme` block never emits the dark image at all
+   (resolveHeaderLogo / resolveFooterLogo only ever return one), so these rules are dormant
+   for it. With no [data-theme] attribute yet present (JavaScript disabled), the light asset
+   stays visible - the safe default, matching the canonical asset JSON-LD uses. --- */
+.site-footer__logo,
+.site-footer__logo--light,
+.site-footer__logo--dark {
+  height: 28px;
+  width: auto;
+  margin-bottom: 0.35rem;
+}
+.brand-mark__logo--dark,
+.site-footer__logo--dark {
+  display: none;
+}
+:root[data-theme="dark"] .brand-mark__logo--dark,
+:root[data-theme="dark"] .site-footer__logo--dark {
+  display: block;
+}
+:root[data-theme="dark"] .brand-mark__logo--light,
+:root[data-theme="dark"] .site-footer__logo--light {
+  display: none;
+}
+
+/* --- STORY-GRAPH section (expressive pack; components/sections/StoryGraph.tsx +
+   lib/story-graph.mjs). A server-rendered inline SVG diagram, fully theme-tokened:
+   node fill / stroke and every ink derive from the existing surface tokens and the
+   two brand colors, so any palette (including the dual-theme layer, which remaps
+   these same aliases) applies with no per-site CSS. A per-node config color lands
+   as an inline fill on the rect and wins over the themed default rule below.
+   Nothing here renders unless a page declares a storyGraph section. --- */
+.sgraph { margin-top: 1.75rem; }
+.sgraph__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-inline: auto;
+}
+.sgraph__node rect {
+  fill: var(--surface);
+  stroke: var(--line);
+  stroke-width: 1.5;
+}
+.sgraph__label {
+  fill: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+}
+.sgraph__sublabel {
+  fill: var(--muted);
+  font-family: var(--font-body);
+  font-size: 11.5px;
+}
+.sgraph__wire {
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-primary) 45%, var(--line));
+  stroke-width: 1.5;
+}
+.sgraph__arrow {
+  fill: color-mix(in srgb, var(--color-primary) 45%, var(--line));
+}
+/* The edge label sits on top of its wire; paint-order strokes a bg-colored halo
+   behind the glyphs so the text stays legible where it crosses the line. */
+.sgraph__edgelabel {
+  fill: var(--muted);
+  font-family: var(--font-body);
+  font-size: 11px;
+  paint-order: stroke;
+  stroke: var(--color-bg);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+/* The animated CURRENT: an accent pulse traveling each edge. The overlay path is
+   pathLength-normalized to 100, so one dash period (7 + 93) equals one dashoffset
+   cycle (100 -> 0) and the loop is seamless on any edge length. DEFAULT HIDDEN
+   (opacity 0): it becomes visible ONLY inside the no-preference block below, so
+   prefers-reduced-motion shows the complete static graph with no pulse at all
+   (and the master reduced-motion guard at the top of this file kills the
+   animation as well, belt and suspenders). No JS anywhere in this section. */
+.sgraph__current {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 7 93;
+  stroke-dashoffset: 100;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sgraph__current {
+    opacity: 1;
+    animation: rl-sgraph-current 3.6s linear infinite;
+  }
+}
+@keyframes rl-sgraph-current {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+/* Responsive direction: an ltr graph prerenders BOTH orientations and this media
+   query picks one, so narrow screens read the same graph top to bottom instead of
+   shrinking a wide diagram to illegibility. Pure CSS, no JS relayout. A ttb graph
+   renders a single unclassed .sgraph__svg untouched by these rules. */
+.sgraph__svg--narrow { display: none; }
+@media (max-width: 700px) {
+  .sgraph--responsive .sgraph__svg--wide { display: none; }
+  .sgraph--responsive .sgraph__svg--narrow { display: block; }
+}
+
+/* ============================================================================
+   Section.style variants (expressive pack). ONE generic opt-in field on Section
+   carries these looks (lib/style-variant.mjs resolves which section types honor
+   which variant); a config that sets no style emits none of these classes, so
+   every existing site renders identically. Note for the integrating architect:
+   built from the pack spec's written description (the original gallery
+   source file was not reachable from the build environment), generalized to the
+   engine's tokens; compare against the source at integration.
+   ============================================================================ */
+
+/* --- style: "ribbon" (services feature-card grid) ---
+   A layered card system: each card gains stacked-sheet depth built from the v0.21
+   --rl-shadow tokens (the flat offset shadow reads as a second sheet peeking out
+   below), and the item's EXISTING FeatureItem.badge re-renders as an edge ribbon
+   overhanging the card's top-right corner, with a fold-back triangle (a border
+   trick pseudo) tucking it to the card face. No new content field: a card without
+   a badge gets the depth treatment only. Every ink derives from the two brand
+   colors / theme tokens. Hover lift is fine-pointer gated below and its
+   transition is settled by the master reduced-motion guard at the top of this
+   file (transition: none), so reduced motion sees the calm static card. */
+.grid--ribbon .card {
+  position: relative;
+  box-shadow:
+    var(--rl-shadow-sm),
+    0 0.5rem 0 -0.28rem color-mix(in srgb, var(--line) 60%, var(--color-bg)),
+    var(--rl-shadow-md);
+  transition: transform 0.18s var(--ease-craft, ease), box-shadow 0.22s var(--ease-craft, ease);
+}
+.grid--ribbon .card .card__badge {
+  position: absolute;
+  top: 1.1rem;
+  right: -0.45rem;
+  z-index: 1;
+  margin: 0;
+  padding: 0.32rem 0.7rem 0.32rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 28%, var(--line));
+  border-right: 0;
+  border-radius: 4px 0 0 4px;
+  background: color-mix(in srgb, var(--color-accent) 16%, var(--color-bg));
+  color: color-mix(in srgb, var(--color-accent) 70%, var(--color-text));
+  box-shadow: var(--rl-shadow-sm);
+}
+/* The fold: a small triangle under the ribbon's overhang, inked darker (accent
+   toward text) so it reads as the ribbon wrapping the card edge. */
+.grid--ribbon .card .card__badge::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-top: 0.45rem solid color-mix(in srgb, var(--color-accent) 55%, var(--color-text));
+  border-right: 0.45rem solid transparent;
+}
+/* A badged card's title clears the overhanging ribbon (general-sibling: the badge
+   precedes the h3 in the card markup, so badge-less cards keep the full measure). */
+.grid--ribbon .card .card__badge ~ h3 { padding-right: 5rem; }
+@media (hover: hover) and (pointer: fine) {
+  .grid--ribbon .card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      var(--rl-shadow-sm),
+      0 0.6rem 0 -0.28rem color-mix(in srgb, var(--line) 60%, var(--color-bg)),
+      var(--rl-shadow-lg);
+  }
+}
+/* The master guard kills the transition, and this local block additionally drops the
+   hover transform itself, mirroring the .btn / .plan / .social-link convention: under
+   reduced motion a pointer never moves the card at all. */
+@media (prefers-reduced-motion: reduce) {
+  .grid--ribbon .card:hover { transform: none; }
+}
+
+/* --- style: "editorial" (hero) ---
+   An editorial-typography opening: oversized system-serif display headline
+   (ui-serif / Georgia stack, ZERO font downloads), tight leading, the existing
+   subheading as a ruled eyebrow line, generous measure and whitespace. Type and
+   space ONLY - not a single color changes, so the base hero's AA contrast (white
+   on the brand-primary fill; the dark theme's own hero rules) carries unchanged
+   on both themes. Deliberately motionless: the existing craft.heroMotion stagger
+   (already reduced-motion-guarded and no-JS safe) composes with this class if a
+   site wants an entrance; with nothing opted in, no-JS and reduced motion both
+   see the complete static hero. */
+.hero--editorial .hero__inner {
+  max-width: 56rem;
+  padding-block: clamp(5rem, 15vw, 9.5rem);
+}
+.hero--editorial h1 {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: clamp(2.75rem, 7.5vw, 4.9rem);
+  font-weight: 400;
+  line-height: 1.03;
+  letter-spacing: -0.01em;
+  max-width: 16ch;
+  text-wrap: balance;
+  margin-bottom: 0.35em;
+}
+.hero--editorial .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  letter-spacing: 0.22em;
+  margin-bottom: 1.25rem;
+}
+/* The eyebrow's short rule, drawn in the eyebrow's own ink (currentColor), so it
+   follows the on-hero accent and any theme override with no extra tokens. */
+.hero--editorial .eyebrow::before {
+  content: "";
+  width: 2.2rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.7;
+}
+.hero--editorial .lead {
+  font-size: clamp(1.15rem, 2vw, 1.3rem);
+  line-height: 1.6;
+  max-width: 52ch;
+}
+.hero--editorial .hero__cta { margin-top: 2rem; }

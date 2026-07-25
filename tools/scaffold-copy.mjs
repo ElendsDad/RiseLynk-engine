@@ -17,6 +17,13 @@
 // gates use, so scaffold copy is held to the identical banned-phrase / no-dash /
 // no-exclamation discipline. A violation FAILS the run.
 //
+// v0.26.0: also covers customer-facing STRING EMITTERS in lib/ (llms.ts, trust.mjs
+// defaults, announcement.mjs defaults). The old "lib/ has no JSX" exclusion let
+// lib/llms.ts ship elevator-vertical copy into every trade site's /llms.txt. A second
+// pass extracts prose-looking string literals from those emitters and runs lintString,
+// plus a vertical-term ban on generic emitters (elevator/escalator/plumber/... must not
+// appear as hardcoded engine copy in a trade-neutral emitter).
+//
 // Deliberately narrow: it extracts only text that LOOKS like literal prose (a JSX text
 // node or a literal aria-label/placeholder/title attribute with no embedded expression),
 // not every character between two angle brackets - see looksLikeCopy() - so it does not
@@ -34,10 +41,37 @@ export { lintString };
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ENGINE_ROOT = resolve(HERE, "..");
 
-// The engine's own scaffold lives in these two trees. examples/ and lib/ are deliberately
-// excluded: examples/ is fixture/demo content (already covered by the hydrate/blog gates
-// where it matters), and lib/ has no JSX.
+// The engine's own JSX scaffold lives in these two trees. examples/ stays excluded
+// (fixture/demo content, already covered by hydrate/blog gates where it matters).
 const SCAFFOLD_DIRS = ["app", "components"];
+
+// Customer-facing string emitters in lib/. Not every lib file: only modules that emit
+// visitor-visible or AI-consumed prose from hardcoded literals. Audit note (2026-07-24):
+// peers checked and NOT listed (no visitor prose of their own, or structural labels only):
+// area-ld, hours-ld (day abbreviations), seo/rating/offer/service-page-ld (JSON-LD keys),
+// contact-intake, delivery-guard, csp, content-gate, celebrate, stars, gallery, brand-logo,
+// inline-links, jsonld-escape, business-type, theme*, story-graph, section-id, read-time,
+// social-icons, icons, style-variant, services. hydrate.mjs elevator copy is intentional
+// RiseLynk-tenant hydration (config output), not a generic runtime emitter.
+export const LIB_EMITTER_FILES = [
+  "lib/llms.ts",
+  "lib/trust.mjs",
+  "lib/announcement.mjs",
+];
+
+// Generic emitters that must stay trade-neutral. Vertical nouns in hardcoded strings
+// here are the exact class of leak that put "stopped elevator" on plumber llms.txt.
+export const GENERIC_EMITTER_FILES = ["lib/llms.ts", "lib/trust.mjs", "lib/announcement.mjs"];
+
+export const VERTICAL_TERMS = [
+  { term: "elevator", re: /\belevators?\b/i },
+  { term: "escalator", re: /\bescalators?\b/i },
+  { term: "plumber", re: /\bplumbers?\b/i },
+  { term: "plumbing", re: /\bplumbing\b/i },
+  { term: "hvac", re: /\bhvac\b/i },
+  { term: "roofer", re: /\broofers?\b/i },
+  { term: "roofing", re: /\broofing\b/i },
+];
 
 function walkTsxFiles(dir, acc = []) {
   for (const entry of readdirSync(dir)) {
@@ -88,6 +122,50 @@ export function extractCopyStrings(content) {
   return [...out];
 }
 
+// Pull prose-looking string / template literals from a .ts/.mjs emitter. Skips import
+// paths, short tokens, and template chunks that are only interpolation glue.
+const LIB_STRING_RE = /(["'`])((?:\\.|(?!\1)[^\\])*)\1/g;
+
+export function looksLikeLibCopy(raw) {
+  const t = raw.trim();
+  if (!t) return false;
+  if (t.length < 12 || t.length > 300) return false;
+  if (!/[a-zA-Z]/.test(t)) return false;
+  // Need at least one space (prose) or a sentence-ending punctuation run.
+  if (!/\s/.test(t) && !/[.!?]$/.test(t)) return false;
+  // Skip paths, URLs, and code-shaped tokens.
+  if (/^[\w./@${}-]+$/.test(t) && !/\s/.test(t)) return false;
+  if (/^(node:|https?:|application\/|text\/|image\/)/i.test(t)) return false;
+  if (/\$\{/.test(t) && t.replace(/\$\{[^}]*\}/g, "").trim().length < 8) return false;
+  return true;
+}
+
+export function extractLibCopyStrings(content) {
+  const out = new Set();
+  // Strip block and line comments so doc examples do not trip the gate.
+  const stripped = content
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1");
+  let m;
+  LIB_STRING_RE.lastIndex = 0;
+  while ((m = LIB_STRING_RE.exec(stripped))) {
+    const raw = m[2].replace(/\\n/g, "\n").replace(/\\"/g, '"').replace(/\\'/g, "'");
+    // Drop template interpolations for the prose check; keep the surrounding words.
+    const forCheck = raw.replace(/\$\{[^}]*\}/g, "…");
+    if (looksLikeLibCopy(forCheck)) out.add(forCheck.replace(/\s+/g, " ").trim());
+  }
+  return [...out];
+}
+
+export function lintVerticalTerms(string, file) {
+  if (!GENERIC_EMITTER_FILES.includes(file)) return [];
+  const hits = [];
+  for (const v of VERTICAL_TERMS) {
+    if (v.re.test(string)) hits.push({ string, rule: `vertical-term:${v.term}`, match: v.term });
+  }
+  return hits;
+}
+
 // Lint one file; returns { file, strings, violations: [{ match: string, rule, matchedText }] }.
 export function lintScaffoldFile(absPath) {
   const content = readFileSync(absPath, "utf8");
@@ -99,7 +177,19 @@ export function lintScaffoldFile(absPath) {
   return { file: relative(ENGINE_ROOT, absPath).split(sep).join("/"), strings, violations };
 }
 
-// Whole-scaffold check over app/ + components/. Returns { fileCount, stringsScanned, violations }.
+export function lintLibEmitterFile(absPath, root = ENGINE_ROOT) {
+  const content = readFileSync(absPath, "utf8");
+  const rel = relative(root, absPath).split(sep).join("/");
+  const strings = extractLibCopyStrings(content);
+  const violations = [];
+  for (const s of strings) {
+    for (const v of lintString(s)) violations.push({ string: s, rule: v.rule, match: v.match });
+    for (const v of lintVerticalTerms(s, rel)) violations.push(v);
+  }
+  return { file: rel, strings, violations };
+}
+
+// Whole-scaffold check over app/ + components/ + lib emitters.
 export function checkScaffold(root = ENGINE_ROOT) {
   const files = SCAFFOLD_DIRS.flatMap((d) => walkTsxFiles(join(root, d)));
   const violations = [];
@@ -111,7 +201,14 @@ export function checkScaffold(root = ENGINE_ROOT) {
     for (const v of result.violations) violations.push({ file: result.file, ...v });
     perFile.push(result);
   }
-  return { fileCount: files.length, stringsScanned, violations, perFile };
+  for (const rel of LIB_EMITTER_FILES) {
+    const abs = join(root, ...rel.split("/"));
+    const result = lintLibEmitterFile(abs, root);
+    stringsScanned += result.strings.length;
+    for (const v of result.violations) violations.push({ file: result.file, ...v });
+    perFile.push(result);
+  }
+  return { fileCount: files.length + LIB_EMITTER_FILES.length, stringsScanned, violations, perFile };
 }
 
 function runCli() {

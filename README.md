@@ -11,8 +11,8 @@ Proprietary and internal (license UNLICENSED).
 This is a **pinned snapshot**, not a fork:
 
 - Every file under `app/`, `lib/`, `components/`, `public/`, `examples/`, `tools/`,
-  `docs/`, plus `next.config.mjs`, `package.json`, `package-lock.json`, and
-  `tsconfig.json`, is the **pristine site-engine tree at tag `v0.17.0`**. Nothing in
+  `docs/`, plus `next.config.ts`, `package.json`, `package-lock.json`, and
+  `tsconfig.json`, is the **pristine site-engine tree at tag `v0.26.0`**. Nothing in
   the engine was edited or forked.
 - The riselynk.com site is a single config file plus assets overlaid on top:
   - `dist/site/riselynk/site.config.ts` is the riselynk.com `site.config` (the copy,
@@ -27,7 +27,7 @@ re-snapshot (see below), you do not patch engine files here.
 ### The one seam change
 
 The active-site seam, `site.config.ts` at the repo root, is the **only engine source
-file changed** from the pristine v0.17.0 tree. Upstream it re-exports the elevator
+file changed** from the pristine v0.26.0 tree. Upstream it re-exports the elevator
 demo; here it re-exports the riselynk config:
 
 ```ts
@@ -36,7 +36,7 @@ export { site } from "@/dist/site/riselynk/site.config";
 
 Every engine consumer imports `from "@/site.config"`, so this one line makes a plain
 `next build` render riselynk.com. The `SITE_CONFIG_PATH` env override in
-`next.config.mjs` still exists and works, but is unused here by design.
+`next.config.ts` still exists and works, but is unused here by design.
 
 The only other non-engine files are this `README.md` and `.gitignore` (repo
 scaffolding), and `vercel.json` (`{"framework":"nextjs"}`).
@@ -82,7 +82,7 @@ When site-engine ships a newer tag (say `v0.18.0`) and you want riselynk.com on 
    `git -C <site-engine> archive vX.Y.Z | tar -x -C <tmp>`, or check out the tag and
    copy the working tree.
 2. In this repo, **replace the engine files** with that tree: `app/`, `lib/`,
-   `components/`, `examples/`, `tools/`, `docs/`, `next.config.mjs`, `package.json`,
+   `components/`, `examples/`, `tools/`, `docs/`, `next.config.ts`, `package.json`,
    `package-lock.json`, `tsconfig.json`, and the engine `public/` files. Do **not**
    overwrite `dist/site/riselynk/site.config.ts`, the riselynk.com `public/` assets,
    this `README.md`, or `.gitignore`.
@@ -106,8 +106,8 @@ When site-engine ships a newer tag (say `v0.18.0`) and you want riselynk.com on 
 
 ## Provenance
 
-- Engine: site-engine at tag `v0.17.0` (pristine).
-- Site config source of truth: the founder's design bundle
-  `design_session_2026-7-12`, transcribed into `dist/site/riselynk/site.config.ts`.
+- Engine: site-engine at tag `v0.26.0` (pristine; commit `37f22aa`).
+- Site config source of truth: `RiseLynk/website/site/site.config.ts` on RiseLynk
+  `main` at `2446b9d`, overlaid at `dist/site/riselynk/site.config.ts`.
 - This repo is a deploy artifact. Engine changes are made in the site-engine repo and
   reach riselynk.com through a re-snapshot, never by editing engine files here.

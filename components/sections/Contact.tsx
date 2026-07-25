@@ -4,13 +4,20 @@ import { useState } from "react";
 import type { Section } from "@/lib/config-schema";
 import { site } from "@/site.config";
 import Turnstile from "@/components/Turnstile";
+import LeadAttribution from "@/components/LeadAttribution";
+import Prose from "@/components/Prose";
 import { celebrateSuccess } from "@/lib/celebrate.mjs";
+import { hoursLine } from "@/lib/hours-ld.mjs";
 
 const telHref = (p: string) => `tel:${p.replace(/[^0-9+]/g, "")}`;
 
 export default function Contact({ section }: { section: Section }) {
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "mailto">("idle");
   const b = site.business;
+  // Structured hours (feedback #27) win over the legacy string, formatted by the same
+  // lib/hours-ld.mjs line llms.txt prints (one source, no drift); absent or withheld by
+  // the fail-closed validation, the string renders as before.
+  const hoursText = hoursLine(b.openingHours) ?? b.hours;
 
   // Last-resort delivery: hand the message to the visitor's email client so a
   // lead is never lost if the receiver is unreachable or could not capture it.
@@ -62,13 +69,17 @@ export default function Contact({ section }: { section: Section }) {
         {section.heading ? <h2>{section.heading}</h2> : null}
         <div className="contact" style={{ marginTop: "1.5rem" }}>
           <div className="contact__details">
-            {section.body ? <p className="lead">{section.body}</p> : null}
+            {section.body ? (
+              <p className="lead">
+                <Prose text={section.body} />
+              </p>
+            ) : null}
             {b.phone ? (
               <p><strong>Call:</strong> <a href={telHref(b.phone)}>{b.phone}</a></p>
             ) : null}
             <p><strong>Email:</strong> <a href={`mailto:${b.email}`}>{b.email}</a></p>
             {b.address ? <p><strong>Address:</strong> {b.address}</p> : null}
-            {b.hours ? <p><strong>Hours:</strong> {b.hours}</p> : null}
+            {hoursText ? <p><strong>Hours:</strong> {hoursText}</p> : null}
             {b.mapEmbedUrl ? (
               <iframe className="map" src={b.mapEmbedUrl} title="Map" loading="lazy" />
             ) : null}
@@ -83,6 +94,7 @@ export default function Contact({ section }: { section: Section }) {
               <label htmlFor="c-website">Website</label>
               <input id="c-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
             </div>
+            <LeadAttribution />
             <div className="field">
               <label htmlFor="name">Name</label>
               <input id="name" name="name" required autoComplete="name" />

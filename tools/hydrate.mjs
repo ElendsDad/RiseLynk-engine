@@ -657,6 +657,9 @@ export function hydrate(snapshot, opts = {}) {
           : "Someone stuck in an elevator? Call now during business hours.",
       regionLabel: "Emergency service line",
       note: "For a stuck elevator with someone inside, call first. Do not try to force the doors.",
+      // llms.txt emergency tip (lib/llms.ts): config-owned vertical context, never a
+      // hardcoded engine string. Parallel to examples/elevator-demo.
+      emergencyContext: "a stopped elevator with someone inside",
     };
     T("callBar.dispatchRouted", "capability", callBar.dispatchRouted, "wiring.dispatchRouted");
   }

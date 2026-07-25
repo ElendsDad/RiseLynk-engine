@@ -1,4 +1,5 @@
 import type { Section } from "@/lib/config-schema";
+import Prose from "@/components/Prose";
 
 // Visible service-area list (local-trades conversion batch). Brand-neutral: heading,
 // subheading, body, and every area name/note come verbatim from config (claims wall: no
@@ -14,7 +15,11 @@ export default function ServiceArea({ section }: { section: Section }) {
       <div className="container">
         {section.subheading ? <p className="eyebrow">{section.subheading}</p> : null}
         {section.heading ? <h2>{section.heading}</h2> : null}
-        {section.body ? <p className="lead">{section.body}</p> : null}
+        {section.body ? (
+          <p className="lead">
+            <Prose text={section.body} />
+          </p>
+        ) : null}
         {/* role="list"/"listitem": list-style: none strips the implicit list semantics in
             some browser/AT combinations (a known Safari/VoiceOver behavior), so the areas
             served would announce as plain text rather than a list. The explicit roles

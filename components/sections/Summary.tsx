@@ -1,4 +1,5 @@
 import type { Section } from "@/lib/config-schema";
+import Prose from "@/components/Prose";
 
 // Answer-first summary block (the GEO idiom ported from riselynk.com articles): a labelled
 // card that states the answer up front as a short ordered list, so an AI answer engine can
@@ -13,11 +14,17 @@ export default function Summary({ section }: { section: Section }) {
         {section.heading ? <h2>{section.heading}</h2> : null}
         <div className="summary" role="note">
           <span className="summary__label">{section.summaryLabel ?? "The short version"}</span>
-          {section.body ? <p>{section.body}</p> : null}
+          {section.body ? (
+            <p>
+              <Prose text={section.body} />
+            </p>
+          ) : null}
           {points.length ? (
             <List className="summary__points">
               {points.map((pt, i) => (
-                <li key={i}>{pt}</li>
+                <li key={i}>
+                  <Prose text={pt} />
+                </li>
               ))}
             </List>
           ) : null}

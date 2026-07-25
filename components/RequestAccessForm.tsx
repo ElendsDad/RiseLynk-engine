@@ -26,11 +26,16 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { LeadField, Section } from "@/lib/config-schema";
 import { site } from "@/site.config";
 import Turnstile from "@/components/Turnstile";
+import LeadAttribution from "@/components/LeadAttribution";
+import Prose from "@/components/Prose";
 import { celebrateSuccess } from "@/lib/celebrate.mjs";
+import { LEAD_ATTRIBUTION_KEYS } from "@/lib/lead-attribution.mjs";
 
 // Canonical intake columns (lowercased form-name -> the key lib/contact-intake.mjs reads).
 // A declared field whose name matches one of these maps straight onto the lead; anything else
 // folds into the message body. `website` and `source` are reserved (honeypot / lead source).
+// Attribution keys (utm_*, referrer, landing_path) pass through as top-level fields so the
+// intake can sanitize them before foldExtras; they are not pre-folded here.
 const CANON: Record<string, string> = {
   name: "name",
   company: "company",
@@ -44,6 +49,7 @@ const CANON: Record<string, string> = {
   website: "website",
   source: "source",
 };
+const ATTR_KEYS = new Set(LEAD_ATTRIBUTION_KEYS);
 
 // A sensible default field set when a site sets `modal: true` without declaring `formFields`.
 const DEFAULT_FIELDS: LeadField[] = [
@@ -175,9 +181,12 @@ export default function RequestAccessForm({ section }: { section: Section }) {
         .map((v) => String(v).trim())
         .filter(Boolean)
         .join(", ");
-      const canon = CANON[nm.toLowerCase()];
+      const lower = nm.toLowerCase();
+      const canon = CANON[lower];
       if (canon) {
         payload[canon] = val;
+      } else if (ATTR_KEYS.has(lower)) {
+        if (val) payload[lower] = val;
       } else if (val) {
         extraLines.push(`${labelByName.get(nm) ?? nm}: ${val}`);
       }
@@ -230,7 +239,11 @@ export default function RequestAccessForm({ section }: { section: Section }) {
       <div className="container">
         {section.subheading ? <p className="eyebrow">{section.subheading}</p> : null}
         {section.heading ? <h2>{section.heading}</h2> : null}
-        {section.body ? <p className="lead">{section.body}</p> : null}
+        {section.body ? (
+          <p className="lead">
+            <Prose text={section.body} />
+          </p>
+        ) : null}
 
         {/* No-JS override: with scripting disabled the browser applies this style, flipping the
             modal chrome to a plain inline card, hiding the trigger and close button, and revealing
@@ -282,6 +295,7 @@ export default function RequestAccessForm({ section }: { section: Section }) {
                     <label htmlFor="ra-website">Website</label>
                     <input id="ra-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
                   </div>
+                  <LeadAttribution />
 
                   {fields.map((f) => (
                     <Field key={f.name} field={f} />

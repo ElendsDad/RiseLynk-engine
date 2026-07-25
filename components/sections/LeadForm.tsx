@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { Section } from "@/lib/config-schema";
 import { site } from "@/site.config";
 import Turnstile from "@/components/Turnstile";
+import LeadAttribution from "@/components/LeadAttribution";
+import Prose from "@/components/Prose";
 import { celebrateSuccess } from "@/lib/celebrate.mjs";
 import RequestAccessForm from "@/components/RequestAccessForm";
 
@@ -67,7 +69,11 @@ function ClassicLeadForm({ section }: { section: Section }) {
       <div className="container">
         {section.subheading ? <p className="eyebrow">{section.subheading}</p> : null}
         {section.heading ? <h2>{section.heading}</h2> : null}
-        {section.body ? <p className="lead">{section.body}</p> : null}
+        {section.body ? (
+          <p className="lead">
+            <Prose text={section.body} />
+          </p>
+        ) : null}
 
         <form className="leadform" onSubmit={onSubmit} noValidate style={{ marginTop: "1.5rem" }}>
           {/* Honeypot: a hidden anti-spam trap (feature-backlog #4). A human never sees or
@@ -78,6 +84,7 @@ function ClassicLeadForm({ section }: { section: Section }) {
             <label htmlFor="lf-website">Website</label>
             <input id="lf-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
           </div>
+          <LeadAttribution />
           <div className="field">
             <label htmlFor="lf-name">Name</label>
             <input id="lf-name" name="name" required autoComplete="name" />
@@ -117,7 +124,7 @@ function ClassicLeadForm({ section }: { section: Section }) {
           {fields.includes("building") ? (
             <div className="field">
               <label htmlFor="lf-building">Building or address</label>
-              <input id="lf-building" name="building" autoComplete="street-address" />
+              <input id="lf-building" name="building" autoComplete="address-line1" />
             </div>
           ) : null}
 

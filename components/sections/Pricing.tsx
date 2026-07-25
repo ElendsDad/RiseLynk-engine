@@ -1,4 +1,6 @@
 import type { Section } from "@/lib/config-schema";
+import Prose from "@/components/Prose";
+import { matrixCellDisplay, normalizeMatrixCells } from "@/lib/matrix-cells.mjs";
 
 // Pricing section (Phase-A product-marketing layer, G4). Renders the plan set from config as a
 // row of cards. Display-only: the Offer / AggregateOffer JSON-LD is emitted once on the
@@ -6,15 +8,25 @@ import type { Section } from "@/lib/config-schema";
 // structured offers can never drift from the cards. Brand-neutral: the `highlighted` flag only
 // adds a class a site can style (for example the gradient hot-plan price), and the badge text is
 // config-supplied. The engine bakes no color and no marketing copy; every value here is config.
+//
+// Teardown P2 2a: optional `comparisonRows` renders a feature-by-feature matrix under the
+// cards. Absent comparisonRows keeps the cards-only markup byte-identical.
 export default function Pricing({ section }: { section: Section }) {
   const tiers = section.tiers ?? [];
   if (!tiers.length) return null;
+  const rows = section.comparisonRows ?? [];
+  const showMatrix = rows.length > 0;
+
   return (
     <section className="section" id="pricing">
       <div className="container">
         {section.subheading ? <p className="eyebrow">{section.subheading}</p> : null}
         {section.heading ? <h2>{section.heading}</h2> : null}
-        {section.body ? <p className="lead">{section.body}</p> : null}
+        {section.body ? (
+          <p className="lead">
+            <Prose text={section.body} />
+          </p>
+        ) : null}
 
         <div className="plans" style={{ marginTop: "1.5rem" }}>
           {tiers.map((t, i) => (
@@ -50,6 +62,58 @@ export default function Pricing({ section }: { section: Section }) {
             </article>
           ))}
         </div>
+
+        {showMatrix ? (
+          <div className="matrix-wrap" style={{ marginTop: "2rem" }}>
+            <table className="matrix matrix--pricing">
+              <thead>
+                <tr>
+                  <th scope="col" className="matrix__corner">
+                    <span className="sr-only">Feature</span>
+                  </th>
+                  {tiers.map((t, i) => (
+                    <th scope="col" key={i}>
+                      {t.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, i) => {
+                  const cells = normalizeMatrixCells(row.cells, tiers.length);
+                  return (
+                    <tr key={i}>
+                      <th scope="row">{row.feature}</th>
+                      {cells.map((cell, j) => {
+                        const d = matrixCellDisplay(cell);
+                        return (
+                          <td
+                            key={j}
+                            className={
+                              d.kind === "yes"
+                                ? "matrix__cell matrix__cell--yes"
+                                : d.kind === "no"
+                                  ? "matrix__cell matrix__cell--no"
+                                  : "matrix__cell"
+                            }
+                          >
+                            {d.kind === "yes" ? (
+                              <span aria-label="Yes">Yes</span>
+                            ) : d.kind === "no" ? (
+                              <span className="sr-only">No</span>
+                            ) : (
+                              d.text
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
       </div>
     </section>
   );

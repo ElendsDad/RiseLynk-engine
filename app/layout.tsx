@@ -20,6 +20,8 @@ import Analytics from "@/components/Analytics";
 import JsonLd from "@/components/JsonLd";
 import CallBar from "@/components/CallBar";
 import CookieNotice from "@/components/CookieNotice";
+import Announcement from "@/components/Announcement";
+import { aiMetaTags, resolveAiCrawlerPolicy } from "@/lib/ai-robots.mjs";
 
 export const metadata: Metadata = {
   title: {
@@ -75,6 +77,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const ssrTheme = ssrThemeAttr(site.theme);
   const themeSheet = themeSheetCss(site.brand, site.theme);
   const themeBoot = themeBootJs(site.theme);
+  // AI training opt-out meta (conventional TDM / noai signals). Default ON for
+  // indexable sites; set seo.aiMetaSignals: false to suppress. Not a legal
+  // shield - see lib/ai-robots.mjs.
+  const aiTags =
+    site.seo.aiMetaSignals === false
+      ? []
+      : aiMetaTags({
+          indexable: isIndexable(site),
+          policy: resolveAiCrawlerPolicy(site.seo),
+          enabled: true,
+        });
   return (
     <html
       lang="en"
@@ -93,8 +106,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {fontPreloads.map((href) => (
           <link key={href} rel="preload" href={href} as="font" type="font/woff2" crossOrigin="anonymous" />
         ))}
+        {aiTags.map((t) => (
+          <meta key={`${t.name}:${t.content}`} name={t.name} content={t.content} />
+        ))}
         <JsonLd data={siteGraphLd(site)} />
         <a href="#main" className="skip-link">Skip to content</a>
+        {site.announcement ? <Announcement /> : null}
         <Header />
         <main id="main">{children}</main>
         <Footer />

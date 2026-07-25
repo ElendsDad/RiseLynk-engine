@@ -7,8 +7,8 @@
 // `next build` (the default Vercel build) renders riselynk.com with no extra env.
 //
 // This is the ONLY engine source file changed from the pristine site-engine
-// v0.17.0 tree (alongside README.md and .gitignore, which are repo scaffolding).
-// The SITE_CONFIG_PATH override in next.config.mjs still works and is unused here.
+// v0.26.0 tree (alongside README.md and .gitignore, which are repo scaffolding).
+// The SITE_CONFIG_PATH override in next.config.ts still works and is unused here.
 //
 // To re-snapshot onto a newer engine tag, see README.md: replace the engine
 // files from the new tag, re-overlay the riselynk config, and keep this one line.

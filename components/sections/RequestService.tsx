@@ -3,6 +3,9 @@
 import { useState } from "react";
 import type { Section } from "@/lib/config-schema";
 import { site } from "@/site.config";
+import Prose from "@/components/Prose";
+import Turnstile from "@/components/Turnstile";
+import LeadAttribution from "@/components/LeadAttribution";
 
 // Request-service form for the elevator-contractor archetype.
 //
@@ -64,9 +67,14 @@ export default function RequestService({ section }: { section: Section }) {
       <div className="container">
         {section.subheading ? <p className="eyebrow">{section.subheading}</p> : null}
         {section.heading ? <h2>{section.heading}</h2> : null}
-        {section.body ? <p className="lead">{section.body}</p> : null}
+        {section.body ? (
+          <p className="lead">
+            <Prose text={section.body} />
+          </p>
+        ) : null}
 
         <form className="leadform" onSubmit={onSubmit} noValidate style={{ marginTop: "1.5rem" }}>
+          <LeadAttribution />
           <div className="field">
             <label htmlFor="rs-name">Name</label>
             <input id="rs-name" name="name" required autoComplete="name" />
@@ -102,7 +110,7 @@ export default function RequestService({ section }: { section: Section }) {
 
           <div className="field">
             <label htmlFor="rs-building">Building or address</label>
-            <input id="rs-building" name="building" autoComplete="street-address" />
+            <input id="rs-building" name="building" autoComplete="address-line1" />
           </div>
 
           {fields.includes("message") ? (
@@ -110,6 +118,10 @@ export default function RequestService({ section }: { section: Section }) {
               <label htmlFor="rs-message">What is going on?</label>
               <textarea id="rs-message" name="message" rows={4} />
             </div>
+          ) : null}
+
+          {site.security?.turnstile?.siteKey ? (
+            <Turnstile siteKey={site.security.turnstile.siteKey} />
           ) : null}
 
           <div className="field--full">

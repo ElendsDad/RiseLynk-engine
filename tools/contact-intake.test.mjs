@@ -85,6 +85,8 @@ async function testSaveFirstNeverDrop() {
   eq("the lead reached the saver", spy.saved.length, 1);
   eq("saver got the name", spy.saved[0].name, "Dana Lee");
   ok("SAVE happened before SEND", spy.events[0] === "save" && spy.events[1] === "send");
+  // saved:true + notified:false is NOT the black hole (the lead survived); v0.24.1 #30c.
+  eq("deliveryStatus is ok (saved, even though mail failed)", r.deliveryStatus, "ok");
 }
 
 // ================= 3. phone-only lead still saves =================
@@ -214,6 +216,9 @@ async function testHoneypot() {
   eq("honeypot did NOT notify", trap.sent.length, 0);
   ok("neither save nor send was called", trap.events.length === 0);
   ok("no saved/notified flags leak (client mailto never fires)", r.saved === undefined && r.notified === undefined);
+  // v0.24.1 #30c: the spam early-return is untouched (naming/visibility only applies to the
+  // real submit path) - no deliveryStatus leaks here either.
+  eq("no deliveryStatus on the spam early-return", r.deliveryStatus, undefined);
 
   // R1 behavior preserved: an EMPTY honeypot (a real human) still saves and notifies.
   const clean = makeSpies();
@@ -225,6 +230,42 @@ async function testHoneypot() {
   eq("clean submit still saved", clean.saved.length, 1);
   eq("clean submit still notified", clean.sent.length, 1);
   eq("clean submit is not flagged spam", r2.spam, undefined);
+}
+
+// ================= 10b. deliveryStatus (v0.24.1, feedback #30c) =================
+// Naming/visibility only: submit()'s existing saved/notified booleans are unchanged (proven
+// throughout this file's other tests); this adds ONE new field so a consumer can probe for the
+// exact black-hole combination directly instead of separately checking two booleans.
+async function testDeliveryStatus() {
+  console.log("\n# deliveryStatus (v0.24.1 #30c): black_hole only on saved:false + notified:false");
+
+  // The true black hole: no saver configured (defaults to saved:false), mailer throws.
+  const blackHole = makeSpies({ sendThrows: true });
+  const rBlackHole = await submit({
+    body: { name: "Nobody Hears", email: "nobody@lead.com", message: "hello?" },
+    save: async () => ({ saved: false, reason: "no_store" }), send: blackHole.send, to: TO, from: FROM,
+  });
+  eq("black hole: saved is false", rBlackHole.saved, false);
+  eq("black hole: notified is false", rBlackHole.notified, false);
+  eq("black hole: deliveryStatus is black_hole", rBlackHole.deliveryStatus, "black_hole");
+
+  // saved:false but notified:true (no store configured, mail worked) - NOT a black hole.
+  const noStoreOnly = makeSpies();
+  const rNoStore = await submit({
+    body: { name: "Mailed Fine", email: "ok@lead.com", message: "hi" },
+    save: async () => ({ saved: false, reason: "no_store" }), send: noStoreOnly.send, to: TO, from: FROM,
+  });
+  eq("no-store-only: saved is false", rNoStore.saved, false);
+  eq("no-store-only: notified is true", rNoStore.notified, true);
+  eq("no-store-only: deliveryStatus is ok (notified covers it)", rNoStore.deliveryStatus, "ok");
+
+  // saved:true, notified:true - the fully-wired default.
+  const bothOk = makeSpies();
+  const rBoth = await submit({
+    body: { name: "Fully Wired", email: "wired@lead.com", message: "hi" },
+    save: bothOk.save, send: bothOk.send, to: TO, from: FROM,
+  });
+  eq("both ok: deliveryStatus is ok", rBoth.deliveryStatus, "ok");
 }
 
 // ================= 11. Turnstile verify (feature-backlog #4) =================
@@ -493,6 +534,7 @@ await testSaveHiccup();
 await testSeams();
 await testRateOpen();
 await testHoneypot();
+await testDeliveryStatus();
 await testTurnstile();
 testTurnstileConfigXor();
 await testUnconfiguredUnaffected();

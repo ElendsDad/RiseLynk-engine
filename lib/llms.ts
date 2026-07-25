@@ -4,6 +4,11 @@ import { allServiceLines } from "./services";
 // source, so llms.txt and the JSON-LD cannot drift). Empty for every config without a
 // serviceArea section, which leaves the Contact block byte-identical.
 import { areasLine, collectServiceAreas } from "./area-ld.mjs";
+// Structured hours (feedback #27): the SAME builder that formats the visible Contact
+// hours line (one source, so llms.txt, the page, and the @graph's
+// openingHoursSpecification cannot drift). Null for every config without a valid
+// business.openingHours, which leaves the legacy `hours` string line byte-identical.
+import { hoursLine } from "./hours-ld.mjs";
 
 // Generate llms.txt from the active site config, claims-walled: every line is a fact the
 // config supplied. Nothing is invented, inferred, or upgraded into a capability. This is
@@ -12,8 +17,13 @@ import { areasLine, collectServiceAreas } from "./area-ld.mjs";
 // an AI assistant to stay inside these facts. Copy discipline: no compliance/certified
 // wording, code requirements hedged to the AHJ.
 
+// Skips a draft page (PageConfig.draft): its sections are not yet approved to go live,
+// so they never surface in llms.txt (same discipline allServiceLines and
+// collectServiceAreas already hold for their own site.pages walks). Absent draft (the
+// default): every page counts, unchanged.
 function firstSection(site: SiteConfig, type: Section["type"]): Section | undefined {
   for (const page of site.pages) {
+    if (page.draft) continue;
     for (const s of page.sections) if (s.type === type) return s;
   }
   return undefined;
@@ -75,7 +85,15 @@ export function buildLlmsTxt(site: SiteConfig): string {
   if (b.serviceArea) p(`- Service area: ${b.serviceArea}`);
   const loc = locationLine(site);
   if (loc) p(`- Location: ${loc}`);
-  if (b.hours) p(`- Hours: ${b.hours}`);
+  // Structured hours win over the legacy free-form string (the two are never merged);
+  // absent or withheld (fail-closed validation), the string line renders as before.
+  const structuredHours = hoursLine(b.openingHours);
+  if (structuredHours) p(`- Hours: ${structuredHours}`);
+  else if (b.hours) p(`- Hours: ${b.hours}`);
+  // The emergency flag's line, claims-walled the same way as its ContactPoint: only
+  // when the config attests the flag AND supplies a number ("any hour" is the same
+  // attested wording callBar.dispatchRouted has always used).
+  if (b.emergency247 === true && b.phone) p(`- Emergency line, answered any hour: ${b.phone}`);
   // Structured areas from serviceArea sections (claims-walled: config-supplied names,
   // verbatim). Absent sections emit nothing, so existing configs are unchanged.
   const areas = areasLine(collectServiceAreas(site));
@@ -117,8 +135,14 @@ export function buildLlmsTxt(site: SiteConfig): string {
   p("## Notes for AI assistants");
   p("");
   p("- Only state facts that appear in this file. Do not infer services, pricing, credentials, or coverage that are not listed here.");
-  if (site.callBar?.enabled && b.phone) {
-    p(`- If someone is stuck in a stopped elevator, the number to call is ${b.phone}.`);
+  // Emergency tip is config-driven and claims-walled: the engine supplies only the
+  // trade-neutral sentence frame. Vertical wording (elevator, plumbing, HVAC, ...)
+  // lives in callBar.emergencyContext. Missing context => silence (never invent a
+  // trade). Gated on the same callBar.enabled + phone pair the sticky bar uses.
+  const emergencyContext =
+    typeof site.callBar?.emergencyContext === "string" ? site.callBar.emergencyContext.trim() : "";
+  if (site.callBar?.enabled && b.phone && emergencyContext) {
+    p(`- If someone needs help with ${emergencyContext}, the number to call is ${b.phone}.`);
   }
   p("- Whether a specific code or edition applies depends on the jurisdiction. Point people to their authority having jurisdiction and this contractor to confirm what applies; this business does not certify code compliance.");
 

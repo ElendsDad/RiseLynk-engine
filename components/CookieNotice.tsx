@@ -38,8 +38,12 @@ export default function CookieNotice() {
     setShow(false);
   };
 
+  // Default mentions lead-source capture on form submit (UTM / landing page /
+  // referring site without its query string). Not a cookie, but collection, so
+  // the banner says it. Sites override via cookieNotice.message when needed.
   const message =
-    cfg.message ?? "This site uses only the cookies it needs to work. No advertising or tracking.";
+    cfg.message ??
+    "This site uses only the cookies it needs to work. No advertising or tracking. When you send a form, we keep the page you were on, campaign tags from the link, and the referring site (without its query string) so we know how you found us.";
   const buttonLabel = cfg.buttonLabel ?? "Got it";
   const policyLabel = cfg.policyLabel ?? "Cookie notice";
 

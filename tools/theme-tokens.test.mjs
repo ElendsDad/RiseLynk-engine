@@ -372,6 +372,20 @@ function testCraftCss() {
   // Fine-pointer only (degrades to a static card on coarse / no-hover), with a no-blur fallback.
   ok("glass hover is fine-pointer gated", css.includes("@media (hover: hover) and (pointer: fine)"));
   ok("glass has a no-backdrop-filter fallback", /@supports not \(\(backdrop-filter/.test(css));
+  // Regression (teardown 2026-07-24): Chromium drops backdrop-filter (sometimes sitewide
+  // until reload) when overflow:hidden and backdrop-filter share an element. Blur must
+  // live on ::after; glass cards must force overflow:visible.
+  const glassStart = css.indexOf("/* --- glassHover");
+  const glassEnd = css.indexOf("/* --- gradient hot-plan", glassStart);
+  const glassBlock = glassStart >= 0 && glassEnd > glassStart ? css.slice(glassStart, glassEnd) : "";
+  ok("glass block found for overflow invariant", glassBlock.length > 0);
+  ok("glass cards force overflow:visible", /overflow:\s*visible/.test(glassBlock));
+  // Property declaration only (comments in this block intentionally name the old bug).
+  ok(
+    "glass block does not set overflow:hidden",
+    !/(?:^|[;{])\s*overflow:\s*hidden\s*;/m.test(glassBlock),
+  );
+  ok("glass blur lives on ::after", /\[data-craft~="glass"\][\s\S]*::after[\s\S]*backdrop-filter:\s*blur\(12px\)/.test(glassBlock));
   // Gradient price: ONLY the highlighted plan (.plan--hot-gradient), the sanctioned clip.
   ok("gradient price scoped to .plan--hot-gradient", css.includes(".plan--hot-gradient .plan__price"));
   ok("gradient price uses background-clip: text", css.includes("background-clip: text"));

@@ -17,7 +17,8 @@
 //     coverage); structured areas win over the string, in collected order.
 //   - collectServiceAreas: walks pages and sections, dedupes by normalized name
 //     (first wins), preserves order, ignores other section types and empty
-//     serviceArea sections.
+//     serviceArea sections, and skips a draft page's sections entirely (engine
+//     feedback #4, PageConfig.draft).
 //   - areasLine: ", "-joined names; null for empty.
 //   - A no-serviceArea-sections fixture through the seam matches the pre-change
 //     shape exactly (the byte-identical contract for every existing config).
@@ -104,6 +105,24 @@ function testCollector() {
   ok("no pages -> empty", collectServiceAreas({ pages: [] }).length === 0);
 }
 
+// ================= 3b. collectServiceAreas skips draft pages (PageConfig.draft) =================
+function testCollectorSkipsDraftPages() {
+  console.log("\n# collectServiceAreas: a draft page's serviceArea sections never leak in");
+  const site = {
+    pages: [
+      { sections: [{ type: "serviceArea", areas: [{ name: "Riverton" }] }] },
+      { draft: true, sections: [{ type: "serviceArea", areas: [{ name: "Secret Falls" }] }] },
+    ],
+  };
+  const areas = collectServiceAreas(site);
+  eq("only the non-draft page's area is collected", JSON.stringify(areas.map((a) => a.name)), '["Riverton"]');
+  ok("the draft page's area name never appears", !areas.some((a) => a.name === "Secret Falls"));
+  ok(
+    "absent draft flag (undefined): unaffected, same as before this flag existed",
+    collectServiceAreas({ pages: [{ sections: [{ type: "serviceArea", areas: [{ name: "Fairview" }] }] }] }).length === 1,
+  );
+}
+
 // ================= 4. areasLine =================
 function testAreasLine() {
   console.log('\n# areasLine: ", "-joined names for llms.txt; null for empty');
@@ -148,6 +167,7 @@ function testExistingConfigShape() {
 testLegacyPassthrough();
 testStructuredMode();
 testCollector();
+testCollectorSkipsDraftPages();
 testAreasLine();
 testExistingConfigShape();
 

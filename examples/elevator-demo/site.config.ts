@@ -32,6 +32,19 @@ export const site: SiteConfig = {
     address: "Demo City, WA",
     serviceArea: "Serving King, Pierce, and Kitsap counties",
     hours: "Mon to Fri 7am to 4pm, on-call after hours",
+    // Structured weekly hours (engine feedback #27): the same schedule the free-form line
+    // above states, now feeding openingHoursSpecification on the LocalBusiness node, the
+    // llms.txt "Hours" line, and the visible Contact hours line from ONE source
+    // (lib/hours-ld.mjs). Structured wins on those surfaces; the string stays as the
+    // fallback for configs (or malformed schedules) without it.
+    openingHours: [
+      { days: ["monday", "tuesday", "wednesday", "thursday", "friday"], opens: "07:00", closes: "16:00" },
+    ],
+    // The feedback's emergency flag: this demo's on-call line is answered any hour (the
+    // same fact its FAQ and call bar already state), so the LocalBusiness node gains an
+    // emergency ContactPoint and llms.txt an emergency line. Claims-walled: a real site
+    // sets this only when the business attests it.
+    emergency247: true,
     location: {
       locality: "Demo City",
       region: "WA",
@@ -81,6 +94,9 @@ export const site: SiteConfig = {
     label: "Someone stuck in an elevator? Call now during business hours.",
     regionLabel: "Emergency service line",
     note: "For a stuck elevator with someone inside, call first. Do not try to force the doors.",
+    // Feeds the /llms.txt AI-assistant emergency tip (lib/llms.ts). Trade wording
+    // stays in config; the engine never hardcodes an elevator line.
+    emergencyContext: "a stopped elevator with someone inside",
   },
 
   blog: {

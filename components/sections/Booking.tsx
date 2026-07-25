@@ -1,4 +1,5 @@
 import type { Section } from "@/lib/config-schema";
+import Prose from "@/components/Prose";
 
 export default function Booking({ section }: { section: Section }) {
   if (!section.bookingUrl) return null;
@@ -7,7 +8,11 @@ export default function Booking({ section }: { section: Section }) {
       <div className="container">
         {section.subheading ? <p className="eyebrow">{section.subheading}</p> : null}
         {section.heading ? <h2>{section.heading}</h2> : null}
-        {section.body ? <p className="lead">{section.body}</p> : null}
+        {section.body ? (
+          <p className="lead">
+            <Prose text={section.body} />
+          </p>
+        ) : null}
         <iframe
           className="booking-embed"
           src={section.bookingUrl}

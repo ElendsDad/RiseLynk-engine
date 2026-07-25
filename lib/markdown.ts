@@ -3,22 +3,18 @@
 // unordered lists, bold, and links. No raw HTML pass-through (input is HTML-escaped
 // first), so a config-authored body cannot inject markup. No external CMS, no heavy
 // parser, no copyleft dependency (decision 6: hosted-only).
+//
+// The escape + link-safety machinery (the attribute-injection guard, SEC hardening
+// v0.18.0 FIX 5, proven by tools/markdown.test.mjs) now lives in lib/inline-links.mjs,
+// shared with every OTHER prose surface that supports the same [label](href) syntax
+// (Section.body, Section.points[], FaqItem.a - see components/Prose.tsx and
+// tools/inline-links.test.mjs). This file adds only the bold pass and the block-level
+// (heading/list/paragraph) structure on top of that shared inline renderer.
+import { escapeHtml, linkify } from "./inline-links.mjs";
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-// Inline: run on already-escaped text. Links first, then bold. The link destination excludes
-// '"' from both character classes so a quote can never break out of the href attribute, and any
-// residual quote is entity-encoded to &quot; before the anchor is built (defense in depth, since
-// this output is fed to dangerouslySetInnerHTML).
+// Inline: run on already-escaped text. Links first (lib/inline-links.mjs linkify), then bold.
 function inline(s: string): string {
-  return s
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)"]+|\/[^\s)"]*)\)/g, (_m, text: string, dest: string) => `<a href="${dest.replace(/"/g, "&quot;")}">${text}</a>`)
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  return linkify(s).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 }
 
 export function renderMarkdown(md: string): string {

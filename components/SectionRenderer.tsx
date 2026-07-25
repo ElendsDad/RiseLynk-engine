@@ -30,8 +30,31 @@ import ScrollNarrative from "@/components/sections/ScrollNarrative";
 import ServiceArea from "@/components/sections/ServiceArea";
 // Lead-capture content gate (Phases 0-1)
 import ContentGate from "@/components/ContentGate";
+// Expressive pack
+import StoryGraph from "@/components/sections/StoryGraph";
+// Feedback item 7: add-on / priced-menu section
+import Addons from "@/components/sections/Addons";
+// Dense resource / link directory (teardown 2026-07-24)
+import Directory from "@/components/sections/Directory";
+// Teardown P2: capability matrix + allowlisted video embed
+import FeatureMatrix from "@/components/sections/FeatureMatrix";
+import VideoEmbed from "@/components/sections/VideoEmbed";
 
-const MAP: Record<SectionType, ComponentType<{ section: Section }>> = {
+// sections/index are OPTIONAL and additive: every existing section component reads
+// only `section`. Addons is the first consumer (lib/section-id.mjs resolveSectionId
+// needs the page's full section list plus this section's position to compute a
+// unique DOM id when a page renders more than one addons section); the shape is
+// generic so a future section type facing the same problem can reuse it too. The
+// renderer below supplies the two extra props ONLY to the types that consume them:
+// several section components are client components ("use client" - contact,
+// leadform, products, requestService, careers, scrollNarrative, contentGate), and
+// any prop handed to a client component is serialized into the RSC flight payload
+// of the emitted HTML, so spreading sections/index onto every section would change
+// built output for configs that never use addons and break the
+// byte-identical-absent guarantee. A new consuming type must be added to the
+// conditional in SectionRenderer, and must be a server component (or accept the
+// payload cost knowingly).
+const MAP: Record<SectionType, ComponentType<{ section: Section; sections?: Section[]; index?: number }>> = {
   hero: Hero,
   services: Services,
   about: About,
@@ -55,6 +78,11 @@ const MAP: Record<SectionType, ComponentType<{ section: Section }>> = {
   scrollNarrative: ScrollNarrative,
   serviceArea: ServiceArea,
   contentGate: ContentGate,
+  storyGraph: StoryGraph,
+  addons: Addons,
+  directory: Directory,
+  featureMatrix: FeatureMatrix,
+  videoEmbed: VideoEmbed,
 };
 
 export default function SectionRenderer({ sections }: { sections: Section[] }) {
@@ -62,7 +90,14 @@ export default function SectionRenderer({ sections }: { sections: Section[] }) {
     <>
       {sections.map((section, i) => {
         const Cmp = MAP[section.type];
-        return Cmp ? <Cmp key={i} section={section} /> : null;
+        if (!Cmp) return null;
+        // See the MAP doc comment: the id-resolution props go only to the section
+        // types that consume them, so they are never serialized into a client
+        // component's flight payload.
+        if (section.type === "addons") {
+          return <Cmp key={i} section={section} sections={sections} index={i} />;
+        }
+        return <Cmp key={i} section={section} />;
       })}
     </>
   );

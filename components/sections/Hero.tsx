@@ -1,5 +1,12 @@
 import type { HeroCta, Section } from "@/lib/config-schema";
 import { site } from "@/site.config";
+import Prose from "@/components/Prose";
+import { styleSuffix } from "@/lib/style-variant.mjs";
+import {
+  imageSizeFromPath,
+  resolvePublicPath,
+  siblingModernFormats,
+} from "@/lib/image-size.mjs";
 
 // Normalize the hero's call(s) to action. Back-compat: when `cta[]` is absent the hero renders
 // the single legacy ctaLabel/ctaHref exactly as before (variant "accent", href fallback /contact).
@@ -16,7 +23,14 @@ function heroCtas(section: Section): HeroCta[] {
 }
 
 export default function Hero({ section }: { section: Section }) {
-  const hasImg = Boolean(section.backgroundUrl);
+  const bgUrl = section.backgroundUrl;
+  const hasImg = Boolean(bgUrl);
+  // Real <img> (not CSS background-image) so the preload scanner can see the LCP
+  // candidate, and so we can stamp width/height, fetchpriority, and modern-format
+  // <source> siblings when they already exist on disk. Zero new deps; no sharp.
+  const abs = hasImg && bgUrl ? resolvePublicPath(bgUrl) : null;
+  const dims = abs ? imageSizeFromPath(abs) : null;
+  const modern = hasImg && bgUrl ? siblingModernFormats(bgUrl) : {};
   // R5.1 aurora: brand-tinted drifting blobs behind the hero, only on the plain (non-image) hero
   // and only when the site opts in (craft.aurora). Pure CSS; the drift is settled by the master
   // reduced-motion guard, and the blobs are aria-hidden decoration.
@@ -26,11 +40,28 @@ export default function Hero({ section }: { section: Section }) {
   // Per-site hero-viz slot: the SITE supplies the markup, the engine only frames it. When present
   // the hero becomes a two-column split on wide screens (hero--split); absent leaves it unchanged.
   const vizOn = Boolean(section.heroViz);
+  // Section.style "editorial" (expressive pack) appends .hero--editorial via styleSuffix: an
+  // all-CSS typography treatment (system-serif display headline, ruled eyebrow, wider measure),
+  // resolved in lib/style-variant.mjs. Absent, the suffix is "" and the markup is byte-identical.
   return (
     <section
-      className={`hero${hasImg ? " hero--image" : ""}${vizOn ? " hero--split" : ""}`}
-      style={hasImg ? { backgroundImage: `url(${section.backgroundUrl})` } : undefined}
+      className={`hero${hasImg ? " hero--image" : ""}${vizOn ? " hero--split" : ""}${styleSuffix("hero", section.style, "hero")}`}
     >
+      {hasImg && bgUrl ? (
+        <picture className="hero__media">
+          {modern.avif ? <source type="image/avif" srcSet={modern.avif} /> : null}
+          {modern.webp ? <source type="image/webp" srcSet={modern.webp} /> : null}
+          <img
+            className="hero__bg"
+            src={bgUrl}
+            alt=""
+            fetchPriority="high"
+            decoding="async"
+            width={dims?.width}
+            height={dims?.height}
+          />
+        </picture>
+      ) : null}
       {auroraOn ? (
         <div className="hero__aurora" aria-hidden="true">
           <i />
@@ -42,7 +73,11 @@ export default function Hero({ section }: { section: Section }) {
         <div className="container hero__inner">
           {section.subheading ? <p className="eyebrow">{section.subheading}</p> : null}
           <h1>{section.heading}</h1>
-          {section.body ? <p className="lead">{section.body}</p> : null}
+          {section.body ? (
+            <p className="lead">
+              <Prose text={section.body} />
+            </p>
+          ) : null}
           {ctas.length ? (
             <div className="hero__cta">
               {ctas.map((c, i) => (

@@ -1,4 +1,5 @@
 import type { Section } from "@/lib/config-schema";
+import Prose from "@/components/Prose";
 
 // Elevator-contractor service lines: maintenance, repair, modernization, periodic testing.
 // Every word is config. Each line can carry a short list of points and a link.
@@ -9,7 +10,11 @@ export default function ContractorServices({ section }: { section: Section }) {
       <div className="container">
         {section.subheading ? <p className="eyebrow">{section.subheading}</p> : null}
         {section.heading ? <h2>{section.heading}</h2> : null}
-        {section.body ? <p className="lead">{section.body}</p> : null}
+        {section.body ? (
+          <p className="lead">
+            <Prose text={section.body} />
+          </p>
+        ) : null}
         <div className="grid grid--services" style={{ marginTop: "2rem" }}>
           {lines.map((line, i) => (
             <article className="card svc-card" key={i}>

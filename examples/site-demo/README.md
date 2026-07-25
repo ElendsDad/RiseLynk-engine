@@ -20,7 +20,8 @@ config-drives-everything contract. It is the site the engine builds by default: 
 - The demo omits the `gallery` section because it references image files; a real site drops
   photos into `public/` and lists them under a `gallery` section.
 - Analytics is left unset so the demo build makes no third-party requests. Set
-  `analytics.plausibleDomain` or `analytics.gaId` on a real site.
+  `analytics.cloudflareToken` (recommended), or `analytics.plausibleDomain` /
+  `analytics.gaId`, on a real site.
 - Forms and checkout render and post, but only actually send or charge when the site sets
   `RESEND_API_KEY` / `CONTACT_FROM` / `STRIPE_SECRET_KEY` in its environment. Without those
   keys they no-op safely, which is why the demo builds and runs with zero secrets.

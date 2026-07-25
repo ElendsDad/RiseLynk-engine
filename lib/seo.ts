@@ -1,4 +1,4 @@
-import type { FaqItem, PricingTier, Product, Section, ServiceLine, SiteConfig } from "./config-schema";
+import type { FaqItem, Product, Section, ServiceLine, SiteConfig } from "./config-schema";
 import { allServiceLines } from "./services";
 // Review / rating JSON-LD builders (feature-backlog #2). Shared, dependency-free
 // .mjs so the same logic is unit-tested in plain Node (tools/seo-jsonld.test.mjs);
@@ -8,13 +8,32 @@ import { withRatingLd } from "./rating-ld.mjs";
 // .mjs pattern as rating-ld.mjs: the claims-wall offer logic is unit-tested in plain Node
 // (tools/seo-jsonld.test.mjs). pricingOffersLd emits an Offer only for a real numeric price;
 // softwareAppNode assembles the SoftwareApplication node shape.
-import { pricingOffersLd, softwareApplicationLd as softwareAppNode } from "./offer-ld.mjs";
+import { collectPricingTiers, pricingOffersLd, softwareApplicationLd as softwareAppNode } from "./offer-ld.mjs";
 // Service-area seam. Same shared dependency-free .mjs pattern: collectServiceAreas walks the
 // config's serviceArea sections (one collector, so the @graph and llms.txt cannot drift from
 // the visible section), and areaServedLd is the back-compat seam. With no serviceArea sections
 // it reproduces the legacy single-Place object byte-for-byte (key order included); structured
 // areas become one Place per area. Unit-tested in plain Node (tools/service-area.test.mjs).
 import { areaServedLd, collectServiceAreas } from "./area-ld.mjs";
+// Structured-hours seam (feedback #27). Same shared dependency-free .mjs pattern:
+// openingHoursLd validates fail-closed (one malformed entry withholds the whole schedule,
+// never a partial week) and emergencyContactLd is claims-walled (the config must attest
+// the flag AND supply a phone). Unit-tested in plain Node (tools/hours-ld.test.mjs).
+import { emergencyContactLd, openingHoursLd } from "./hours-ld.mjs";
+// LocalBusiness subtype allowlist (feedback item #29). Same shared dependency-free
+// .mjs pattern: resolveBusinessType is fail-closed by construction (returns a value
+// only when isLocal is true AND schemaType is an exact, case-sensitive match against
+// BUSINESS_SCHEMA_TYPES; every other input, including an unset field, returns null),
+// so an unset or invalid schemaType reproduces today's LocalBusiness/Organization
+// "@type" logic byte-for-byte. Unit-tested in plain Node (tools/schema-type.test.mjs).
+import { resolveBusinessType } from "./business-type.mjs";
+// Inline-link stripper (shared with components/Prose.tsx and lib/markdown.ts): the
+// FAQPage JSON-LD "text" field must mirror the VISIBLE answer, so a [label](href) inside
+// f.a is reduced to its plain label here (see toPlainText's own doc comment).
+import { toPlainText } from "./inline-links.mjs";
+// GBP profile URL for sameAs (engine-value research item 6). Fail-closed https-only;
+// omitted when unset so a config without gbp keeps the org node byte-identical.
+import { resolveGbpProfileUrl } from "./gbp.mjs";
 
 // JSON-LD (schema.org) builders. Kept as plain objects; rendered by <JsonLd>.
 //
@@ -71,7 +90,11 @@ export function organizationLd(site: SiteConfig) {
   const b = site.business;
   const ld: Record<string, unknown> = {
     // v0.2.0: LocalBusiness for a contractor or a site with a real location; else Organization.
-    "@type": isLocalBusiness(site) ? "LocalBusiness" : "Organization",
+    // Feedback item #29: a trade site may name its actual LocalBusiness subtype
+    // (business.schemaType, e.g. "Plumber") in place of the plain "LocalBusiness" string;
+    // resolveBusinessType is fail-closed (see lib/business-type.mjs), so an absent or
+    // invalid schemaType falls through to exactly today's expression, unchanged.
+    "@type": resolveBusinessType(b.schemaType, isLocalBusiness(site)) ?? (isLocalBusiness(site) ? "LocalBusiness" : "Organization"),
     "@id": `${base}/#organization`,
     name: b.name,
     email: b.email,
@@ -98,12 +121,32 @@ export function organizationLd(site: SiteConfig) {
   }
   const areaServed = areaServedLd(b.serviceArea, collectServiceAreas(site));
   if (areaServed) ld.areaServed = areaServed;
-  // sameAs: the same social profile links the Footer renders (business.socials), folded
-  // into the org node so search engines and AI answer engines can tie the two together.
-  // Omitted entirely when unset/empty, same claims-walled posture as every other optional
-  // fact here (nothing invented; a social link is emitted only when the config supplies one).
-  if (b.socials && b.socials.length) {
-    ld.sameAs = b.socials.map((s) => s.href);
+  // Structured weekly hours (feedback #27), only on a LocalBusiness node:
+  // openingHoursSpecification is a LocalBusiness/Place property, not an Organization
+  // one, so a plain-Organization site keeps its graph unchanged (llms.txt and the
+  // Contact section still render the structured line). Null (absent or withheld by the
+  // fail-closed validation) emits nothing, the byte-identical contract.
+  if (isLocalBusiness(site)) {
+    const hours = openingHoursLd(b.openingHours);
+    if (hours) ld.openingHoursSpecification = hours;
+  }
+  // Emergency-line ContactPoint (the feedback's emergency flag), valid on Organization
+  // and LocalBusiness alike; claims-walled in emergencyContactLd (flag + phone or nothing).
+  const emergency = emergencyContactLd(b.phone, b.emergency247);
+  if (emergency) ld.contactPoint = emergency;
+  // sameAs: social profile links the Footer renders (business.socials), plus the Google
+  // Business Profile URL when business.gbp.profileUrl is set. Omitted entirely when
+  // unset/empty, same claims-walled posture as every other optional fact here.
+  {
+    const sameAs: string[] = [];
+    if (b.socials && b.socials.length) {
+      for (const s of b.socials) {
+        if (s?.href) sameAs.push(s.href);
+      }
+    }
+    const gbpProfile = resolveGbpProfileUrl(b.gbp);
+    if (gbpProfile) sameAs.push(gbpProfile);
+    if (sameAs.length) ld.sameAs = sameAs;
   }
   // AggregateRating / Review for the business, only when the config supplies a REAL
   // rating (claims-walled in withRatingLd). A business with none emits neither.
@@ -139,20 +182,6 @@ export function websiteLd(site: SiteConfig) {
   };
 }
 
-// Collect every pricing tier the active config defines, across all pages and sections, for
-// the SoftwareApplication's Offer JSON-LD. Mirrors allServiceLines: ONE collector so the
-// structured offers are built from the same tiers the Pricing section renders (they cannot
-// drift). Order is preserved; no dedupe, since a plan is a plan.
-function allPricingTiers(site: SiteConfig): PricingTier[] {
-  const out: PricingTier[] = [];
-  for (const page of site.pages) {
-    for (const section of page.sections) {
-      if (section.type === "pricing" && section.tiers) out.push(...section.tiers);
-    }
-  }
-  return out;
-}
-
 // G3: SoftwareApplication node for the software-product archetype (a SaaS product like
 // riselynk.com), emitted into the site @graph alongside Organization + WebSite. Its
 // Offer / AggregateOffer is built from the config's pricing tiers (G4, claims-walled in
@@ -164,7 +193,9 @@ export function softwareApplicationLd(site: SiteConfig) {
   const sw = site.software ?? {};
   const currency = site.commerce?.currency;
   // Resolve each tier's CTA href to an absolute Offer url, from the same config.
-  const tiers = allPricingTiers(site).map((t) => ({
+  // collectPricingTiers (lib/offer-ld.mjs) is type-gated on "pricing" only, so an
+  // addons section's items (feedback item 7) never reach this array.
+  const tiers = collectPricingTiers(site.pages).map((t) => ({
     name: t.name,
     priceValue: t.priceValue,
     priceCurrency: t.priceCurrency,
@@ -200,7 +231,11 @@ export function siteGraphLd(site: SiteConfig) {
 }
 
 // FAQPage JSON-LD built from the same FaqItem array the Faq section renders visibly, so
-// the structured answers are verbatim-identical to the on-page copy by construction.
+// the structured answers are verbatim-identical to the on-page copy by construction. An
+// answer may carry inline [label](href) link syntax (see FaqItem.a's doc comment); the
+// VISIBLE-copy parity rule holds here too, so toPlainText reduces it to the label a
+// reader actually sees before it lands in the JSON-LD text - a plain answer with no link
+// syntax passes through unchanged (byte-identical to before this existed).
 export function faqPageLd(faqs: FaqItem[], id?: string) {
   return {
     "@context": "https://schema.org",
@@ -209,7 +244,7 @@ export function faqPageLd(faqs: FaqItem[], id?: string) {
     mainEntity: faqs.map((f) => ({
       "@type": "Question",
       name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
+      acceptedAnswer: { "@type": "Answer", text: toPlainText(f.a) },
     })),
   };
 }

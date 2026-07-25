@@ -107,6 +107,43 @@ test("checkScaffold covers both app/ and components/", () => {
   assert.ok(result.perFile.some((f) => f.file.startsWith("components/")), "expected components/ files scanned");
 });
 
+test("checkScaffold also covers lib/ customer-facing emitters", () => {
+  const result = checkScaffold();
+  assert.ok(result.perFile.some((f) => f.file === "lib/llms.ts"), "expected lib/llms.ts scanned");
+  assert.ok(result.perFile.some((f) => f.file === "lib/trust.mjs"), "expected lib/trust.mjs scanned");
+  assert.ok(
+    result.perFile.some((f) => f.file === "lib/announcement.mjs"),
+    "expected lib/announcement.mjs scanned",
+  );
+});
+
+test("lib emitter gate FAILS if elevator copy reappears in llms.ts", async () => {
+  const { extractLibCopyStrings, lintVerticalTerms } = await import("./scaffold-copy.mjs");
+  const seeded = `
+    export function buildLlmsTxt() {
+      return "- If someone is stuck in a stopped elevator, the number to call is 555.";
+    }
+  `;
+  const strings = extractLibCopyStrings(seeded);
+  assert.ok(
+    strings.some((s) => /elevator/i.test(s)),
+    "extractor must find the seeded elevator string",
+  );
+  const hits = strings.flatMap((s) => lintVerticalTerms(s, "lib/llms.ts"));
+  assert.ok(
+    hits.some((h) => h.rule === "vertical-term:elevator"),
+    "vertical-term:elevator must fire on generic emitter",
+  );
+});
+
+test("lib/llms.ts is free of vertical terms today", async () => {
+  const { lintLibEmitterFile } = await import("./scaffold-copy.mjs");
+  const { join } = await import("node:path");
+  const result = lintLibEmitterFile(join(ENGINE_ROOT, "lib", "llms.ts"));
+  const vertical = result.violations.filter((v) => String(v.rule).startsWith("vertical-term:"));
+  assert.deepEqual(vertical, [], `llms.ts must stay trade-neutral; got ${JSON.stringify(vertical)}`);
+});
+
 // -----------------------------------------------------------------------------
 // runner
 // -----------------------------------------------------------------------------

@@ -11,6 +11,11 @@ import { isIndexable } from "@/lib/seo";
 // v0.2.0: the blog index and every published (non-draft) article are appended, so the
 // hosted blog is discoverable. Drafts are omitted, matching their noindex.
 //
+// A draft PAGE (PageConfig.draft, mirroring Article.draft) is omitted here the same
+// way a draft article is: it carries robots:noindex on its own route regardless of
+// this build's overall indexable state, so listing it in the sitemap would contradict
+// that noindex. It stays reachable at its direct URL; it is just not advertised here.
+//
 // Feedback item #20: a not-indexable build (no domain, or seo.draft) still emitted every
 // page URL here while robots.txt disallowed everything and every page carried noindex -
 // the three surfaces disagreed. isIndexable() is the one source of truth for all three
@@ -22,7 +27,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const base = (site.seo.domain ?? "").replace(/\/+$/, "");
   const now = new Date();
 
-  const pages: MetadataRoute.Sitemap = site.pages.map((p) => {
+  const pages: MetadataRoute.Sitemap = site.pages.filter((p) => !p.draft).map((p) => {
     const isHome = p.slug === "";
     return {
       url: `${base}${isHome ? "" : `/${p.slug}`}`,
