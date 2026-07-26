@@ -83,25 +83,40 @@ When site-engine ships a newer tag (say `v0.18.0`) and you want riselynk.com on 
    copy the working tree.
 2. In this repo, **replace the engine files** with that tree: `app/`, `lib/`,
    `components/`, `examples/`, `tools/`, `docs/`, `next.config.ts`, `package.json`,
-   `package-lock.json`, `tsconfig.json`, and the engine `public/` files. Do **not**
-   overwrite `dist/site/riselynk/site.config.ts`, the riselynk.com `public/` assets,
-   this `README.md`, or `.gitignore`.
-3. Re-overlay the riselynk config for the new tag. The site-engine versioning contract
+   `package-lock.json`, `tsconfig.json`, and the **engine-owned** `public/` paths
+   (fonts, favicon, OG image, and anything else that ships with site-engine itself).
+   Do **not** overwrite `dist/site/riselynk/site.config.ts`, this `README.md`, or
+   `.gitignore`.
+3. **Sync (do not replace) riselynk-only `public/` assets** from the consumer source
+   of truth `RiseLynk/website/site/public/` into this repo's `public/`. Preserve
+   relative paths exactly. This step is mandatory on every re-snapshot: preserving
+   the engine's existing `public/` (or only copying engine-owned files) silently
+   drops any consumer asset added after the last snapshot, which is how live 404s
+   for `/media/screens/slide-0{3-7}.jpg` and `/media/lynk-node-thinking.svg` landed.
+   Practical rule: after step 2, **union-merge** every file under
+   `RiseLynk/website/site/public/` into `public/` here (copy missing + overwrite
+   changed with byte-identical consumer copies). Then **diff the two trees** and
+   confirm nothing consumer-side is still absent except paths under an explicit
+   founder exclusion (today: `public/compare/` stays out of the engine until the
+   COMPARE GATE clears — do not copy it).
+4. Re-overlay the riselynk config for the new tag. The site-engine versioning contract
    is additive (a config valid at an older tag stays valid at a newer one), so the
    existing `dist/site/riselynk/site.config.ts` usually carries forward unchanged. If
    the new tag adds capabilities you want, edit that one config file. Regenerate it
    from the founder's design bundle only if the copy or design changed.
-4. Re-point the seam if needed. `site.config.ts` at the root should still read
+5. Re-point the seam if needed. `site.config.ts` at the root should still read
    `export { site } from "@/dist/site/riselynk/site.config";`. Keep that line.
-5. Verify from a clean state before pushing:
+6. Verify from a clean state before pushing:
    ```bash
    rm -rf node_modules .next
    npm ci
    npm run build
    ```
    Confirm the build is green and the prerendered home page carries the riselynk hero,
-   `https://riselynk.com` canonical, and `data-craft` markup.
-6. Commit with a message that records the new engine tag, and push (founder authorizes
+   `https://riselynk.com` canonical, and `data-craft` markup. Also confirm the synced
+   consumer assets appear under the Next static output (or `public/` as served), not
+   only that the build exit code was 0.
+7. Commit with a message that records the new engine tag, and push (founder authorizes
    the push).
 
 ## Provenance
