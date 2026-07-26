@@ -1,0 +1,32 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="t">
+  <title id="t">Lynk node thinking mark</title>
+  <defs>
+    <radialGradient id="g" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#9fe1cb" stop-opacity=".35"/>
+      <stop offset="100%" stop-color="#5dcaa5" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="240" height="240" rx="36" fill="#131b18"/>
+  <circle cx="120" cy="120" r="92" fill="url(#g)"/>
+  <g fill="none" stroke="#5dcaa5" stroke-width="2.2" stroke-linecap="round">
+    <path d="M56 128 C78 86, 102 74, 120 96" opacity=".85"/>
+    <path d="M120 96 C142 74, 168 88, 186 126" opacity=".85"/>
+    <path d="M70 158 C92 178, 148 178, 172 156" opacity=".7"/>
+    <path d="M96 64 C110 52, 130 52, 144 64" opacity=".55"/>
+  </g>
+  <g fill="#5dcaa5">
+    <circle cx="56" cy="128" r="7"/>
+    <circle cx="120" cy="96" r="9"/>
+    <circle cx="186" cy="126" r="7"/>
+    <circle cx="70" cy="158" r="5.5"/>
+    <circle cx="172" cy="156" r="5.5"/>
+    <circle cx="96" cy="64" r="4.5"/>
+    <circle cx="144" cy="64" r="4.5"/>
+  </g>
+  <g fill="#9fe1cb">
+    <circle cx="120" cy="96" r="3.2"/>
+    <circle cx="134" cy="82" r="2" opacity=".8"/>
+    <circle cx="108" cy="80" r="2" opacity=".8"/>
+    <circle cx="120" cy="72" r="1.6" opacity=".65"/>
+  </g>
+</svg>
