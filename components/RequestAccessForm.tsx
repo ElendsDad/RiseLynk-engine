@@ -290,13 +290,13 @@ export default function RequestAccessForm({ section }: { section: Section }) {
               <div className="leadmodal__head">
                 <h3 id={titleId}>{triggerLabel}</h3>
                 <button type="button" className="leadmodal__x" aria-label="Close" onClick={closeModal}>
-                  &times;
+                  {"\u00D7"}
                 </button>
               </div>
 
               {status === "ok" ? (
                 <div className="leadmodal__done">
-                  <div className="leadmodal__tick" aria-hidden="true">&checkmark;</div>
+                  <div className="leadmodal__tick" aria-hidden="true">{"\u2713"}</div>
                   <h3>Request received</h3>
                   <p>{successMessage}</p>
                   <button type="button" className="btn btn--ghost leadmodal__doneclose" ref={doneCloseRef} onClick={closeModal}>

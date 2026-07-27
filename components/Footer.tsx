@@ -81,7 +81,7 @@ export default function Footer() {
             ))}
           </div>
         ) : null}
-        <div>&copy; {new Date().getFullYear()} {legalName}</div>
+        <div>{"\u00A9"} {new Date().getFullYear()} {legalName}</div>
       </div>
     </footer>
   );

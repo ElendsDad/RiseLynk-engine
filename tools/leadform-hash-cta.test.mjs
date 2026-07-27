@@ -11,7 +11,7 @@
 // fallback, the SSR form action/fields, and the <noscript> chrome flip stay put.
 // ============================================================
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -225,6 +225,50 @@ console.log("\n# RequestAccessForm progressive-enhancement contract (source)");
   // useEffect returns the binder's teardown directly so React unmount removes listeners.
   ok("teardown on unmount (return from useEffect)", /return bindLeadformHashCta\(/.test(src));
   ok("leadmodal is-open class still driven by open state", /is-open/.test(src) && /setOpen\(true\)/.test(src));
+
+  // Named HTML entities in JSX text are a latent render bug: invalid ones (e.g. &checkmark;)
+  // survive as literal source text, and even valid ones are not a reliable contract across
+  // transforms. The success tick and close glyph must be real Unicode.
+  ok(
+    "RequestAccessForm has no raw named HTML entities (&foo;)",
+    !/&[a-zA-Z]+;/.test(src),
+  );
+  ok(
+    "success tick is a real checkmark glyph (U+2713), not a named entity",
+    /leadmodal__tick[^>]*>\{\\?"\\u2713\\?"\}/.test(src) ||
+      /leadmodal__tick[^>]*>✓/.test(src) ||
+      src.includes('leadmodal__tick" aria-hidden="true">{"\\u2713"}'),
+  );
+  ok(
+    "success tick stays aria-hidden (heading carries the meaning)",
+    /leadmodal__tick" aria-hidden="true"/.test(src),
+  );
+
+  // Sibling scan: the same JSX-entity footgun anywhere under components/ or app/
+  // (&times;, &copy;, &rarr;, &mdash;, &check;, …) would render as literal markup
+  // the same way &checkmark; did on the request-access success screen.
+  const namedEntityRe = /&[a-zA-Z]+;/g;
+  const jsxRoots = [join(ROOT, "components"), join(ROOT, "app")];
+  const offenders = [];
+  function walkTsx(dir) {
+    for (const ent of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, ent.name);
+      if (ent.isDirectory()) walkTsx(p);
+      else if (/\.tsx$/.test(ent.name)) {
+        const body = readFileSync(p, "utf8");
+        const found = body.match(namedEntityRe);
+        if (found) offenders.push(p.replace(ROOT + "\\", "").replace(ROOT + "/", "") + ": " + [...new Set(found)].join(" "));
+      }
+    }
+  }
+  for (const root of jsxRoots) walkTsx(root);
+  ok(
+    "no raw named HTML entities (&foo;) in components/ or app/ JSX",
+    offenders.length === 0,
+  );
+  if (offenders.length) {
+    for (const line of offenders) console.log("      " + line);
+  }
 
   const classic = readFileSync(join(ROOT, "components", "sections", "LeadForm.tsx"), "utf8");
   ok("classic LeadForm path does not bind hash CTA", !/bindLeadformHashCta/.test(classic));

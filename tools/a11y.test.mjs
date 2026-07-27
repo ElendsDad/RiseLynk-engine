@@ -59,6 +59,11 @@ function run(cmd, args, opts = {}) {
       cwd: root,
       stdio: "inherit",
       shell: true,
+      // windowsHide (console-popup incident, 2026-07-26): shell:true routes through cmd.exe,
+      // which opens a VISIBLE console window whenever the caller has no console of its own
+      // (the normal case for an agent-hosted run). CREATE_NO_WINDOW suppresses it and cannot
+      // affect the child's exit code, so failure detection below is unchanged.
+      windowsHide: true,
       env: { ...process.env, ...opts.env },
     });
     child.on("error", reject);
@@ -91,7 +96,27 @@ async function ensureBuild() {
   await run("npm", ["run", "build"]);
 }
 
+function loadAccessibilityChecker() {
+  try {
+    return require("accessibility-checker");
+  } catch (err) {
+    // Honest fail — never skip-as-pass. A missing module means CANNOT-VERIFY.
+    console.error(
+      "CANNOT-VERIFY (FAIL): accessibility-checker is declared in package.json but is not installed.\n" +
+        "This gate cannot scan without that package (it pulls puppeteer + chromedriver).\n" +
+        "A partial or stale node_modules often shows this as MODULE_NOT_FOUND while other gates still pass.\n" +
+        "Fix: from the repo root run `npm ci` (preferred) or `npm install`, then re-run `npm run test:a11y`.\n" +
+        `Underlying error: ${err.message}`,
+    );
+    process.exit(1);
+  }
+}
+
 async function main() {
+  // Resolve the scanner before build/server so a broken install fails immediately
+  // with the npm-ci hint, instead of burying MODULE_NOT_FOUND under a full next build.
+  const aChecker = loadAccessibilityChecker();
+
   await ensureBuild();
 
   const port = await freePort();
@@ -111,17 +136,6 @@ async function main() {
     serverLog += d.toString();
   });
 
-  let aChecker;
-  try {
-    aChecker = require("accessibility-checker");
-  } catch (err) {
-    console.error(
-      "FAIL: accessibility-checker is declared in package.json but is not installed.\n" +
-        "Run `npm ci` (or `npm install`) from the repo root, then re-run `npm run test:a11y`.\n" +
-        `Underlying error: ${err.message}`,
-    );
-    process.exit(1);
-  }
   /** @type {{ route: string, report: any }[]} */
   const failures = [];
   /** @type {string[]} */

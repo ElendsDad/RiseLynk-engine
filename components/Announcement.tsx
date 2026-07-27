@@ -71,7 +71,7 @@ export default function Announcement() {
           onClick={dismiss}
           aria-label={resolved.dismissLabel}
         >
-          <span aria-hidden="true">&times;</span>
+          <span aria-hidden="true">{"\u00D7"}</span>
         </button>
       ) : null}
     </div>

@@ -1,6 +1,6 @@
 {
   "name": "site-engine",
-  "version": "0.26.0",
+  "version": "0.28.0",
   "private": true,
   "license": "UNLICENSED",
   "description": "Maxwell Industries internal config-driven static-site engine. A site is a site.config.ts plus assets plus a pinned engine version.",
