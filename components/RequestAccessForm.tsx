@@ -11,8 +11,10 @@
 // intake (a <noscript> style flips the modal chrome to an inline card, hides the
 // trigger, and reveals the form). Only once JS mounts does it become a focus-
 // trapped modal (scrim + blur, focus trap, Escape, focus return, body scroll
-// lock, aria-modal + aria-labelledby) opened by a trigger button. A lead is
-// therefore never lost to a missing or broken script.
+// lock, aria-modal + aria-labelledby) opened by a trigger button OR by a
+// same-page hash CTA / deep link whose hash matches this section's id
+// (lib/leadform-hash-cta.mjs). A lead is therefore never lost to a missing or
+// broken script, and pre-enhancement clicks still land on the SSR form.
 //
 // FIELD FOLDING: known intake columns (name/company/email/phone/units/service/
 // preferredTime/building/message) map straight to the lead; every other declared
@@ -30,6 +32,7 @@ import LeadAttribution from "@/components/LeadAttribution";
 import Prose from "@/components/Prose";
 import { celebrateSuccess } from "@/lib/celebrate.mjs";
 import { LEAD_ATTRIBUTION_KEYS } from "@/lib/lead-attribution.mjs";
+import { bindLeadformHashCta } from "@/lib/leadform-hash-cta.mjs";
 
 // Canonical intake columns (lowercased form-name -> the key lib/contact-intake.mjs reads).
 // A declared field whose name matches one of these maps straight onto the lead; anything else
@@ -74,6 +77,9 @@ export default function RequestAccessForm({ section }: { section: Section }) {
   const triggerLabel = section.modalTriggerLabel ?? section.submitLabel ?? "Request access";
   const submitLabel = section.submitLabel ?? "Request access";
   const successMessage = section.successMessage ?? "Thanks. We will be in touch shortly.";
+  // Explicit Section.id wins; otherwise the historical anchor sites already link to.
+  const sectionId =
+    typeof section.id === "string" && section.id.trim() ? section.id.trim() : "request-access";
 
   const [enhanced, setEnhanced] = useState(false);
   const [open, setOpen] = useState(false);
@@ -100,11 +106,21 @@ export default function RequestAccessForm({ section }: { section: Section }) {
     });
   }, []);
 
-  function openModal() {
+  // Shared open path: the section-local trigger AND hash-CTA / hashchange enhancement
+  // both call this. Do not fork a second open routine.
+  const openModal = useCallback(() => {
     lastFocusRef.current = document.activeElement;
     setStatus("idle");
     setOpen(true);
-  }
+  }, []);
+
+  // Progressive enhancement: same-page anchors whose hash matches this section id
+  // open the modal instead of scrolling. Scoped to this mount; torn down on unmount.
+  // Absent this effect (no-JS / pre-enhance) the href remains a real link to the SSR form.
+  useEffect(() => {
+    if (!enhanced) return;
+    return bindLeadformHashCta({ sectionId, openModal });
+  }, [enhanced, sectionId, openModal]);
 
   // Body scroll lock + initial focus while the modal is open.
   useEffect(() => {
@@ -235,7 +251,7 @@ export default function RequestAccessForm({ section }: { section: Section }) {
     : {};
 
   return (
-    <section className="section section--surface" id="request-access">
+    <section className="section section--surface" id={sectionId}>
       <div className="container">
         {section.subheading ? <p className="eyebrow">{section.subheading}</p> : null}
         {section.heading ? <h2>{section.heading}</h2> : null}
@@ -327,8 +343,10 @@ export default function RequestAccessForm({ section }: { section: Section }) {
   );
 }
 
-// One declarative field. checkbox-group is a fieldset/legend group (no single control to label);
-// every other type is a labelled input/select/textarea. `full` spans both grid columns.
+// One declarative field. checkbox-group and radio-group are fieldset/legend groups (no single
+// control to label); every other type is a labelled input/select/textarea. `full` spans both
+// grid columns. radio-group is a NEW exclusive-choice chip UI (preferred follow-up, etc.); it
+// was not expressible as checkbox-group (multi) and a select lacks the chip affordance.
 function Field({ field }: { field: LeadField }) {
   const id = `ra-${field.name}`;
   const type = field.type ?? "text";
@@ -342,6 +360,30 @@ function Field({ field }: { field: LeadField }) {
           {(field.options ?? []).map((opt) => (
             <label key={opt} className="ra-chip">
               <input type="checkbox" name={field.name} value={opt} />
+              <span>{opt}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    );
+  }
+
+  if (type === "radio-group") {
+    // Native radios: one name, exclusive choice, keyboard-navigable within the group.
+    // `required` on every option is the HTML5 group-required pattern (any one selected satisfies).
+    const legend = (
+      <>
+        {field.label}
+        {field.required ? <span className="req" aria-hidden="true"> *</span> : null}
+      </>
+    );
+    return (
+      <fieldset className={`${wrapClass} ra-group`}>
+        <legend>{legend}</legend>
+        <div className="ra-chips" role="presentation">
+          {(field.options ?? []).map((opt) => (
+            <label key={opt} className="ra-chip">
+              <input type="radio" name={field.name} value={opt} required={field.required} />
               <span>{opt}</span>
             </label>
           ))}

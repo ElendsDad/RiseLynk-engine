@@ -111,7 +111,17 @@ async function main() {
     serverLog += d.toString();
   });
 
-  const aChecker = require("accessibility-checker");
+  let aChecker;
+  try {
+    aChecker = require("accessibility-checker");
+  } catch (err) {
+    console.error(
+      "FAIL: accessibility-checker is declared in package.json but is not installed.\n" +
+        "Run `npm ci` (or `npm install`) from the repo root, then re-run `npm run test:a11y`.\n" +
+        `Underlying error: ${err.message}`,
+    );
+    process.exit(1);
+  }
   /** @type {{ route: string, report: any }[]} */
   const failures = [];
   /** @type {string[]} */

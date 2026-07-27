@@ -8,7 +8,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "hydrate": "node tools/hydrate.mjs",
     "lint:config": "node tools/lint-config.mjs",
     "hydrate:demo": "node tools/hydrate.mjs examples/elevator-demo/publish-profile.snapshot.json dist/hydrated",
@@ -20,9 +20,13 @@
     "test:seo": "node tools/seo-jsonld.test.mjs",
     "test:trust": "node tools/trust.test.mjs",
     "test:theme": "node tools/theme-tokens.test.mjs",
+    "test:glass-hover": "node tools/glass-hover.test.mjs",
     "test:celebrate": "node tools/celebrate.test.mjs",
     "test:jsonld": "node tools/jsonld-escape.test.mjs",
     "test:lead-fields": "node tools/lead-fields.test.mjs",
+    "test:radio-group": "node tools/radio-group-field.test.mjs",
+    "test:cta-banner": "node tools/cta-banner.test.mjs",
+    "test:leadform-hash-cta": "node tools/leadform-hash-cta.test.mjs",
     "test:markdown": "node tools/markdown.test.mjs",
     "test:headers": "node tools/security-headers.test.mjs",
     "test:service-area": "node tools/service-area.test.mjs",
@@ -75,10 +79,13 @@
     "stripe": "^17.5.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.6",
     "@types/node": "^22.10.7",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "accessibility-checker": "^4.0.29",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.20",
     "typescript": "^5.7.3"
   },
   "allowScripts": {

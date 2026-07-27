@@ -300,11 +300,12 @@ export interface VideoEmbedConfig {
   provider?: "youtube" | "vimeo"; // inferred from src when omitted
 }
 
-// --- Multi-CTA hero (harvested from the 2026-07-12 design bundle hero) ---
-// One hero call-to-action. Additive to the legacy single ctaLabel/ctaHref: a hero may declare
-// a `cta[]` array of 1-3 buttons, each with its own label, href, and button variant. Brand-
-// neutral: the variant maps to the engine's existing .btn--primary / .btn--accent / .btn--ghost
-// classes (all derived from the two brand colors), never a baked color.
+// --- Multi-CTA button (hero + closing CTA band) ---
+// One call-to-action button. Additive to the legacy single ctaLabel/ctaHref: a hero may declare
+// a `cta[]` array of 1-3 buttons, and a cta (CTABanner) section may declare 1-6, each with its
+// own label, href, and button variant. Brand-neutral: the variant maps to the engine's existing
+// .btn--primary / .btn--accent / .btn--ghost classes (all derived from the two brand colors),
+// never a baked color. Absent `cta[]` keeps the single-button markup byte-identical.
 export interface HeroCta {
   label: string;
   href?: string; // defaults to /contact when omitted (same fallback as the legacy single CTA)
@@ -329,6 +330,8 @@ export interface HeroCta {
 // checkbox-group's multiple checked values arrive as repeats of one field name; the no-JS route
 // (app/api/lead/route.ts readBody) and the enhanced client both join them into one comma-separated
 // value before folding, and foldExtras itself joins a raw array the same way for any other caller.
+// A radio-group posts exactly one value under the field name (same fold path as a select); it is
+// the chip UI for a single exclusive choice (e.g. preferred follow-up: Email / Text / Phone).
 //
 // `required` is a CLIENT-side contract only (rendered as the native HTML `required` attribute,
 // enforced by the browser's constraint validation before the enhanced form's submit handler even
@@ -347,9 +350,9 @@ export interface HeroCta {
 export interface LeadField {
   name: string; // form field name; a known intake column maps directly, anything else folds into the message. Avoid "website"/"source" (reserved, see above)
   label: string; // visible label; used to fold an extra's message line on the JS-enhanced path only (the no-JS path folds under the raw name)
-  type?: "text" | "email" | "tel" | "number" | "select" | "checkbox-group" | "textarea";
+  type?: "text" | "email" | "tel" | "number" | "select" | "checkbox-group" | "radio-group" | "textarea";
   required?: boolean; // CLIENT-side (HTML required attribute) only; the server enforces no per-field requiredness, see above
-  options?: string[]; // choices for a select or checkbox-group
+  options?: string[]; // choices for a select, checkbox-group, or radio-group
   placeholder?: string;
   autoComplete?: string; // maps to the input autocomplete attribute
   full?: boolean; // span both columns in the two-column grid
@@ -555,9 +558,10 @@ export interface Section {
   ctaLabel?: string;
   ctaHref?: string;
   backgroundUrl?: string;
-  // --- Multi-CTA hero (additive; the single ctaLabel/ctaHref above still works unchanged) ---
-  // 1-3 hero CTAs. When present (and non-empty) this REPLACES the single-CTA render; when absent
-  // the hero falls back to ctaLabel/ctaHref exactly as before (back-compat).
+  // --- Multi-CTA (additive; the single ctaLabel/ctaHref above still works unchanged) ---
+  // Hero: 1-3 CTAs. CTABanner (type "cta"): 1-6 CTAs (a closing band with several exits).
+  // When present (and non-empty) this REPLACES the single-CTA render; when absent the section
+  // falls back to ctaLabel/ctaHref exactly as before (byte-identical back-compat).
   cta?: HeroCta[];
   // Optional mono proof-chip row under the hero CTAs (brand-neutral micro-proof: short factual
   // chips, each with a small brand-accent dot). Absent renders nothing.

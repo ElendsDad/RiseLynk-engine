@@ -28,6 +28,8 @@
 //      line (both the raw-array shape a direct caller might pass, and the
 //      pre-joined comma string shape app/api/lead/route.ts's readBody()
 //      hands to submit() for a real no-JS multi-value post).
+//   3b. A radio-group's single chosen value folds the same way as a select
+//      (one string under the field name; intake contract unchanged).
 //   4. A classic submission with NO formFields/LeadField at all (the fixed
 //      Section.fields enum path: phone/service/preferredTime/building/
 //      message) maps to the exact same canonical lead shape it always has -
@@ -159,6 +161,25 @@ async function testCheckboxGroupMultiValueSurvives() {
     spy.saved[0].message.includes("equipmentNeeds: Emergency Callout, Routine PM, Modernization"));
 }
 
+// ============= 3b. radio-group single value folds like a select =============
+async function testRadioGroupSingleValueFolds() {
+  console.log("\n# a radio-group's single chosen value folds into the saved message (like a select)");
+  // A native radio posts one value under the field name. Same shape as a select; the UI is
+  // chips (RequestAccessForm), the intake path is unchanged.
+  const spy = makeSpies();
+  const r = await submit({
+    body: {
+      name: "Riley Chen", email: "riley@example.com", message: "Happy to talk.",
+      preferredFollowUp: "Email",
+    },
+    save: spy.save, send: spy.send, to: TO, from: FROM,
+  });
+  eq("submit is ok", r.ok, true);
+  ok("radio choice folds verbatim", spy.saved[0].message.includes("preferredFollowUp: Email"));
+  ok("core message preserved", spy.saved[0].message.startsWith("Happy to talk."));
+  ok("no preferredFollowUp column on the lead", !("preferredFollowUp" in spy.saved[0]));
+}
+
 // ============= 4. the classic (no formFields) vocabulary path is unaffected =============
 async function testClassicVocabularyUnaffected() {
   console.log("\n# the classic Section.fields enum path (no LeadField/formFields at all) is byte-identical");
@@ -256,6 +277,7 @@ async function testExtraValueEscapedInNotification() {
 await testCanonicalColumnsMapDirectly();
 await testCustomSelectAndTextsFoldVerbatim();
 await testCheckboxGroupMultiValueSurvives();
+await testRadioGroupSingleValueFolds();
 await testClassicVocabularyUnaffected();
 await testRequiredIsClientSideOnly();
 await testHoneypotAndValidationUnaffectedByExtras();

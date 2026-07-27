@@ -2,7 +2,12 @@
 // CONFIG LINT - the supported, stable entry point for the copy-discipline lint over a site
 // config (v0.6.1, engine feedback item 7).
 //
-//   node tools/lint-config.mjs <config.(json|mjs|js)>
+//   node tools/lint-config.mjs [config.(json|mjs|js)]
+//   npm run lint:config
+//
+// Bare `npm run lint:config` (no args) is self-contained for the release-gate battery:
+// it lints the elevator-demo publish-profile snapshot shipped in-tree. Pass an explicit
+// path to lint any other .json/.mjs/.js config (hand-authored Kitsap configs, etc.).
 //
 // Both storefronts share ONE deterministic copy gate. The hydrator (tools/hydrate.mjs) runs
 // this lint on every hydrated config; a hand-authored config (the Kitsap client-site path)
@@ -23,7 +28,7 @@
 // =============================================================================
 
 import { readFileSync } from "node:fs";
-import { resolve, extname } from "node:path";
+import { resolve, extname, dirname } from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
 
 // Re-export the lint primitives as the stable public surface. The implementation lives in
@@ -56,17 +61,25 @@ export async function lintConfigFile(file) {
   );
 }
 
+// In-tree fixture for the bare `npm run lint:config` release gate. Hand-authored
+// .ts demos stay on the consumer TypeScript pipeline + lintConfig(); this CLI
+// stays dependency-free and only loads .json/.mjs/.js.
+const DEFAULT_CONFIG = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../examples/elevator-demo/publish-profile.snapshot.json",
+);
+
 async function runCli(argv) {
-  const file = argv[0];
-  if (!file) {
-    console.error("Usage: node tools/lint-config.mjs <config.(json|mjs|js)>");
-    process.exit(2);
+  const file = argv[0] || DEFAULT_CONFIG;
+  if (!argv[0]) {
+    console.log(`lint:config: no path given; using default ${file}`);
   }
   let result;
   try {
     result = await lintConfigFile(file);
   } catch (err) {
     console.error(`lint-config: ${err.message}`);
+    console.error("Usage: node tools/lint-config.mjs [config.(json|mjs|js)]");
     process.exit(2);
   }
   const { count, violations } = result;

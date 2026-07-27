@@ -1069,7 +1069,17 @@ p { margin: 0 0 1rem; }
    always-on blur and by .product/.mod base rules that already set overflow:hidden.
    Fix: never put overflow:hidden on a glass-treated card; put the blur on ::after
    (a leaf pseudo, so it does not become a nested Backdrop Root that kills the
-   header glass); keep the pointer-glow on ::before. Absent craft.glass is unchanged. */
+   header glass); keep the pointer-glow on ::before. Absent craft.glass is unchanged.
+
+   HOVER LIFT / TRANSFORM (rechecked 2026-07-25): CSS Filter Effects 2 lists
+   `transform` as a Backdrop Root trigger, which would in theory confine ::after's
+   backdrop-filter to the empty card on :hover (opacity 0→1 is when glass appears).
+   Stripe-fixture A/B in Chromium + Edge (headless new/old, headed, --disable-gpu)
+   did NOT reproduce that collapse for `translateY(-2px)` — blur matched no-lift and
+   `top: -2px`, and the sticky header's blur never dropped or required a reload.
+   So the lift stays on `transform` (smoother than animating `top`). Still never put
+   `overflow: hidden` or `backdrop-filter` on the card itself. Gate:
+   tools/glass-hover.test.mjs. */
 [data-craft~="glass"] .card,
 [data-craft~="glass"] .quote,
 [data-craft~="glass"] .product,
