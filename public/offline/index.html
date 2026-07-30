@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<!-- ============================================================================
+     RiseLynk /offline page: the honest offline capability matrix.
+
+     WHY THIS PAGE EXISTS. Competitive research 2026-07-29
+     (~/.maxwell/competitor-engineering-intel.md §7.2) found that every
+     elevator-specific vendor markets offline and NOT ONE publishes what it does
+     not do. ServiceTitan publishes exactly one sentence of limitations and is the
+     only vendor in the field who publishes any. Publishing our own boundary is
+     therefore both a trust artifact and an inoculation: a buyer holding this page
+     knows which vendor is being careful.
+
+     SOURCE OF EVERY ROW. marketing-feed/brand/page-claims-security-and-offline.md,
+     section "Offline scope, including the limits", which carries the file and line
+     for each claim, read out of apps/field/field-app.html,
+     apps/field/sync-engine.js, apps/field/sw.js and the migrations on 2026-07-29.
+     Do not add a row here that is not in that file, and do not remove a LIMIT row
+     to make the page read better. The limits are the point.
+
+     (That gate is a SIBLING of feature-catalog.md, not part of it. Read its header
+     for why: the social post generator turns every feature-catalog bullet into a
+     postable claim, and these must never enter that pool. Product claims on this
+     page, such as the MCP disclaimer, still come from feature-catalog.md.)
+
+     COMPETITOR RULE. ServiceTitan's own help page is the ONLY competitor source
+     used, because it is the only vendor-published offline-limits page the
+     research retrieved in full. Review-site quotes and pages that blocked
+     retrieval are barred (research §8.1). FIELDBOSS is deliberately not mentioned
+     (research §7.16).
+
+     STATUS: STAGED, noindex. Not linked from site.config.ts, absent from the
+     engine sitemap by construction. Same pattern as /compare/index.html.
+
+     ON APPROVAL, in order: (1) drop the <meta name="robots" content="noindex">,
+     (2) add an Offline page to website/site/site.config.ts pages[] so the engine
+     sitemap lists it, (3) link it from the homepage offline section and from
+     /trust/, (4) re-verify every row against the code, because a matrix that
+     drifts is worse than no matrix.
+
+     KNOWN DEFECT TO FIX BEFORE PUBLISH. apps/field/field-app.html:5099-5101 tells
+     the tech an offline Lynk question "is queued and Lynk will answer when signal
+     returns", and no code path resends it. This page does not repeat that promise.
+     Fix the app string or the page becomes the honest half of a contradiction.
+     ============================================================================ -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>What RiseLynk does, and does not do, without a signal</title>
+<meta name="description" content="The full offline capability matrix for the RiseLynk field app. What works in a machine room with no signal, what does not, what happens to a conflicting edit, and what happens if the phone is lost.">
+<link rel="canonical" href="https://riselynk.com/offline/">
+<meta name="theme-color" content="#0f1412">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/fonts/barlow-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/plex-mono-500.woff2" as="font" type="font/woff2" crossorigin>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RiseLynk">
+<meta property="og:url" content="https://riselynk.com/offline/">
+<meta property="og:title" content="What RiseLynk does, and does not do, without a signal">
+<meta property="og:description" content="The full offline capability matrix for the RiseLynk field app, limits included.">
+<meta property="og:image" content="https://riselynk.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="RiseLynk, the offline-first elevator maintenance platform">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="What RiseLynk does, and does not do, without a signal">
+<meta name="twitter:description" content="The full offline capability matrix for the RiseLynk field app, limits included.">
+<meta name="twitter:image" content="https://riselynk.com/og-image.png">
+<style>
+  /* Fonts: Barlow + IBM Plex Mono, SIL OFL 1.1, self-hosted latin subsets.
+     Token set shared with /compare/ and the engine-built pages. */
+  @font-face{font-family:'Barlow';font-weight:600;font-style:normal;font-display:swap;src:url('/fonts/barlow-600.woff2') format('woff2')}
+  @font-face{font-family:'Barlow';font-weight:800;font-style:normal;font-display:swap;src:url('/fonts/barlow-800.woff2') format('woff2')}
+  @font-face{font-family:'IBM Plex Mono';font-weight:500;font-style:normal;font-display:swap;src:url('/fonts/plex-mono-500.woff2') format('woff2')}
+  :root{
+    --font-display:'Barlow',-apple-system,'Segoe UI',sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,'Cascadia Mono',monospace;
+    --bg:#0f1412; --bg2:#131b18; --card:#1a2420; --card2:#21302a; --line:#2c3d35;
+    --ink:#e7efea; --dim:#a9b8b1; --faint:#869a90;
+    --green:#5dcaa5; --green-deep:#0c4f41; --green-soft:#9fe1cb;
+    --amber:#e8b45f; --amber-deep:#4f3c0c;
+    --shadow-md:0 10px 30px -8px rgba(0,0,0,.45);
+    --ease:cubic-bezier(.2,.8,.25,1);
+    --r-sm:10px; --r-md:14px; --r-lg:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;
+    background-image:linear-gradient(180deg,#121814 0%,#0f1412 24%,#0d1210 60%,#0b0f0d 100%);
+    background-attachment:fixed;background-repeat:no-repeat}
+  body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E")}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:rgba(93,202,165,.28);color:var(--ink)}
+  :focus-visible{outline:2px solid var(--green);outline-offset:3px;border-radius:6px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+  .btn{position:relative;display:inline-flex;align-items:center;gap:6px;padding:12px 22px;border-radius:var(--r-sm);font-weight:700;font-size:15px;cursor:pointer;border:1px solid var(--line);
+    transition:transform .18s var(--ease),box-shadow .22s var(--ease),background .18s var(--ease),border-color .18s var(--ease),color .18s var(--ease),filter .18s var(--ease)}
+  .btn:focus-visible{outline:2px solid var(--green-soft);outline-offset:3px}
+  .btn.primary{background:var(--green);color:#062018;border-color:var(--green);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 6px 16px -8px rgba(0,0,0,.6)}
+  .btn.primary:hover{transform:translateY(-2px);filter:brightness(1.05)}
+  .btn.ghost{background:rgba(159,225,203,.04);color:var(--green-soft);border-color:var(--line)}
+  .btn.ghost:hover{background:var(--card2);border-color:var(--green-deep);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+
+  nav{position:sticky;top:0;z-index:40;background:rgba(15,20,18,.6);
+    -webkit-backdrop-filter:blur(14px) saturate(1.5);backdrop-filter:blur(14px) saturate(1.5);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05);border-bottom:1px solid transparent;
+    transition:background .3s var(--ease),border-color .3s var(--ease),box-shadow .3s var(--ease),height .3s var(--ease)}
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){nav{background:rgba(15,20,18,.96)}}
+  nav.scrolled{background:rgba(13,18,16,.86);border-bottom-color:var(--line);box-shadow:0 8px 30px -16px rgba(0,0,0,.7)}
+  nav .wrap{display:flex;align-items:center;gap:14px;height:64px;transition:height .3s var(--ease)}
+  nav.scrolled .wrap{height:56px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:.2px}
+  .logo .mk{width:30px;height:30px;border-radius:8px;background:var(--green);display:grid;place-items:center;color:#062018;font-weight:900;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 2px 6px rgba(0,0,0,.45);transition:transform .25s var(--ease)}
+  .logo:hover .mk{transform:rotate(-6deg) scale(1.06)}
+  nav .links{margin-left:auto;display:flex;gap:22px;align-items:center}
+  nav .links a:not(.btn){position:relative;color:var(--dim);font-size:14px;font-weight:600;padding:4px 0;transition:color .18s var(--ease)}
+  nav .links a:not(.btn):after{content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;border-radius:2px;background:var(--green);transition:right .25s var(--ease)}
+  nav .links a:not(.btn):hover{color:var(--ink)}
+  nav .links a:not(.btn):hover:after,nav .links a:not(.btn):focus-visible:after{right:0}
+  @media(max-width:720px){nav .links a:not(.btn){display:none}}
+
+  .kicker{display:inline-block;font-family:var(--font-mono);font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--green-soft);padding:0 0 8px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+
+  .phero{position:relative;padding:clamp(56px,8vw,88px) 0 clamp(20px,4vw,34px);overflow:hidden}
+  .phero:before{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;
+    background:radial-gradient(1100px 560px at 60% -20%,rgba(120,210,178,.13),transparent 62%)}
+  .phero h1{font-family:var(--font-display);font-size:clamp(30px,4.2vw,46px);line-height:1.1;font-weight:800;letter-spacing:-.015em;max-width:22ch;text-wrap:balance}
+  .phero h1 .g{color:var(--green-soft)}
+  .phero p.sub{margin-top:20px;font-size:18px;line-height:1.55;color:var(--dim);max-width:66ch}
+
+  .draftnote{margin:26px 0 0;padding:14px 18px;border-radius:var(--r-md);
+    background:linear-gradient(180deg,rgba(79,60,12,.28),rgba(79,60,12,.14));border:1px solid var(--amber-deep);
+    font-family:var(--font-mono);font-size:12.5px;letter-spacing:.02em;color:#e8d9a6;line-height:1.6}
+
+  section{position:relative;padding:clamp(36px,5vw,56px) 0}
+  section.bordered{border-top:1px solid var(--line)}
+  section h2{font-family:var(--font-display);font-size:clamp(22px,3vw,28px);font-weight:800;letter-spacing:-.01em;line-height:1.15}
+  section .lead{color:var(--dim);margin-top:12px;max-width:68ch;line-height:1.6}
+  section .lead + .lead{margin-top:14px}
+
+  .tablewrap{margin-top:28px;overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-md);background:linear-gradient(180deg,var(--card),rgba(20,27,24,.7))}
+  table.cmp{width:100%;border-collapse:collapse;min-width:680px;font-size:14.5px}
+  table.cmp caption{text-align:left;padding:16px 18px 0;font-size:12px;color:var(--faint);line-height:1.6}
+  table.cmp th, table.cmp td{padding:14px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+  table.cmp thead th{font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--ink);background:rgba(255,255,255,.02);position:sticky;top:0}
+  table.cmp tbody th{font-weight:600;color:var(--ink);width:38%}
+  table.cmp tbody td{color:var(--dim);line-height:1.55}
+  table.cmp tbody tr:last-child th, table.cmp tbody tr:last-child td{border-bottom:none}
+  .verdict{display:inline-block;font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+    padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .verdict.yes{color:var(--green-soft);background:rgba(93,202,165,.10);border:1px solid var(--green-deep)}
+  .verdict.no{color:var(--amber);background:rgba(232,180,95,.09);border:1px solid var(--amber-deep)}
+  .verdict.part{color:var(--dim);background:rgba(255,255,255,.04);border:1px solid var(--line)}
+
+  blockquote.pull{margin-top:30px;padding:22px 24px;border-left:3px solid var(--green);border-radius:0 var(--r-md) var(--r-md) 0;
+    background:rgba(93,202,165,.05);color:var(--ink);font-size:16px;line-height:1.6;max-width:74ch}
+  blockquote.pull b{color:var(--green-soft)}
+
+  .callout{margin-top:26px;padding:22px 24px;border-radius:var(--r-md);border:1px solid var(--amber-deep);
+    background:linear-gradient(180deg,rgba(79,60,12,.22),rgba(79,60,12,.10));max-width:78ch}
+  .callout h3{font-family:var(--font-display);font-size:17px;font-weight:800;color:#f0dfb0}
+  .callout p{margin-top:9px;color:#e0d3ab;line-height:1.6}
+
+  .plain{margin-top:22px;display:flex;flex-direction:column;gap:18px;max-width:76ch}
+  .plain h3{font-family:var(--font-display);font-size:17.5px;font-weight:800;color:var(--ink)}
+  .plain p{color:var(--dim);margin-top:7px;line-height:1.62}
+
+  .footnotes{margin-top:28px;padding-top:20px;border-top:1px solid var(--line);max-width:80ch}
+  .footnotes h3{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:12px}
+  .footnotes ol{padding-left:20px;display:flex;flex-direction:column;gap:9px}
+  .footnotes li{color:var(--faint);font-size:13px;line-height:1.6}
+  .footnotes li b{color:var(--dim)}
+  .footnotes a{color:var(--green-soft);border-bottom:1px solid var(--green-deep);word-break:break-word}
+  .footnotes a:hover{color:var(--ink)}
+
+  .final{position:relative;text-align:center;overflow:hidden;
+    background:radial-gradient(900px 340px at 50% 135%,rgba(120,210,178,.10),transparent 62%)}
+  .final h2{font-size:clamp(22px,3vw,28px);letter-spacing:-.3px}
+  .final .cta{margin-top:22px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+  footer{position:relative;border-top:1px solid var(--line);padding:30px 0;color:var(--faint);font-size:13px}
+  footer .wrap{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+  footer .sp{flex:1}
+  footer a{color:var(--faint);transition:color .16s var(--ease);display:inline-block;padding:4px 2px}
+  footer a:hover{color:var(--green-soft)}
+
+  @media (prefers-reduced-motion: reduce){
+    *,*:before,*:after{animation-duration:.001ms !important;animation-iteration-count:1 !important;
+      transition-duration:.001ms !important;scroll-behavior:auto !important}
+    html{scroll-behavior:auto}
+    body{background-attachment:scroll}
+  }
+</style>
+<script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="../"><span class="mk">R</span> RiseLynk</a>
+    <div class="links">
+      <a href="../#features">Platform</a>
+      <a href="../#edges">Why RiseLynk</a>
+      <a href="../pricing/">Pricing</a>
+      <a href="../blog/">Blog</a>
+      <a href="../trust/">Trust</a>
+      <a href="../contact/">Contact</a>
+      <a href="https://demo.app.riselynk.com">Live demo</a>
+      <a class="btn ghost" href="https://app.riselynk.com">Sign in</a>
+    </div>
+  </div>
+</nav>
+
+<header class="phero">
+  <div class="wrap">
+    <span class="kicker">Offline capability</span>
+    <h1>What works with no signal, <span class="g">and what does not.</span></h1>
+    <p class="sub">ASME A17.1 Section 8.6 wants the records on site. On site is a machine room, a pit, or a basement, and that is exactly where the signal is not. So the field app works without one. Here is the whole boundary, including the parts that are awkward for us.</p>
+    <div class="draftnote" role="note">
+      STAGED, not published. This page is not linked, not in the sitemap, and marked noindex until it clears founder review.
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>Why we publish the limits</h2>
+    <p class="lead">Every vendor in this trade says their app works offline. None of them says what it does not do. That is not a small omission, because a mechanic finds out the answer standing in a pit at four in the afternoon, and by then the sale is somebody else's problem.</p>
+    <p class="lead">So this is the whole matrix. If a row here is awkward for us, it stayed in. Read it before you buy anything, including ours.</p>
+
+    <div class="tablewrap">
+      <table class="cmp">
+        <caption>The RiseLynk field app on a phone that has already been set up once. Verified against the shipping code on July 29, 2026.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Doing this on the unit</th>
+            <th scope="col">With no signal</th>
+            <th scope="col">What actually happens</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Open the app cold</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>The app itself is stored on the phone, so opening it in a basement is not a blank screen.</td>
+          </tr>
+          <tr>
+            <th scope="row">Pull up your route and your tickets</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>Your assigned work is on the phone.</td>
+          </tr>
+          <tr>
+            <th scope="row">Look up a unit you were not scheduled for</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>Every site, building, bank and unit in the company is on the phone, not just today's route, because after-hours dispatch sends anyone to anything.</td>
+          </tr>
+          <tr>
+            <th scope="row">Read a unit's service history</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>The full history, with no date cutoff. What failed twice already and what the last mechanic adjusted are both there.<sup>1</sup></td>
+          </tr>
+          <tr>
+            <th scope="row">Look up a part in the catalog</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>The parts catalog is on the phone.</td>
+          </tr>
+          <tr>
+            <th scope="row">Create a ticket, log time, add parts, write notes</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>Saved to the phone and queued in one step, so it is safe before anything touches the network.</td>
+          </tr>
+          <tr>
+            <th scope="row">Take photos on the unit</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>The photo is saved instantly. The upload waits for signal.</td>
+          </tr>
+          <tr>
+            <th scope="row">Capture a signature</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>Signed on the unit, stored on the ticket. It is a captured mark on the record, not a certified or legally binding signature.</td>
+          </tr>
+          <tr>
+            <th scope="row">Close a ticket out</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>Closed on the phone. The office sees it when the phone syncs.</td>
+          </tr>
+          <tr>
+            <th scope="row">Complete a Category 1 or Category 5 form</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>Filled on the unit.</td>
+          </tr>
+          <tr>
+            <th scope="row">Print or export a filled inspection packet</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>The blank form and the PDF machinery are both stored on the phone, so nothing is fetched to produce the packet.</td>
+          </tr>
+          <tr>
+            <th scope="row">Print a unit's Inspector Copy for the machine room</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>Built on the phone. The starting-point program is a draft your own licensed or qualified personnel review, complete, and adopt. It is not a code-compliance certification, and RiseLynk is not the inspector or the authority having jurisdiction.</td>
+          </tr>
+          <tr>
+            <th scope="row">Work the MCP checklist, add a maintenance suggestion</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>A field-added item is a suggestion until the office approves it, offline or on.</td>
+          </tr>
+          <tr>
+            <th scope="row">Keep truck stock, file a bug, write a message</th>
+            <td><span class="verdict yes">Works</span></td>
+            <td>All queued and sent on reconnect.</td>
+          </tr>
+          <tr>
+            <th scope="row">Set up a brand new phone</th>
+            <td><span class="verdict no">Needs signal</span></td>
+            <td>Once. The first pull downloads your units and history. Until it finishes the app cannot be used. After it finishes, no signal is needed.<sup>2</sup></td>
+          </tr>
+          <tr>
+            <th scope="row">Ask Lynk a question</th>
+            <td><span class="verdict no">Needs signal</span></td>
+            <td>The assistant runs on our servers. In a dead zone it cannot answer, in the field app or anywhere else.</td>
+          </tr>
+          <tr>
+            <th scope="row">Reorder the day by real driving distance</th>
+            <td><span class="verdict part">Degrades</span></td>
+            <td>With no signal the app orders by straight-line distance instead. It still reorders. It is a rougher answer than the road network would give.</td>
+          </tr>
+          <tr>
+            <th scope="row">Look at a photo somebody else took</th>
+            <td><span class="verdict part">Depends</span></td>
+            <td>Yours are on your phone. A colleague's photo you have not opened before needs signal the first time.</td>
+          </tr>
+          <tr>
+            <th scope="row">Raise an entrapment call</th>
+            <td><span class="verdict part">Recorded, not alerted</span></td>
+            <td>You can raise it with no signal and it is recorded. Nobody is alerted until the phone reaches signal, because the alert is sent by our servers. Read the note below this table.</td>
+          </tr>
+          <tr>
+            <th scope="row">Send or receive a message, or see a dispatch change</th>
+            <td><span class="verdict part">Delayed</span></td>
+            <td>Nothing is lost. It waits, both directions, and moves the moment either phone has signal.</td>
+          </tr>
+          <tr>
+            <th scope="row">Get a push alert with the app closed</th>
+            <td><span class="verdict no">Needs signal</span></td>
+            <td>A push notification travels over the network by definition.</td>
+          </tr>
+          <tr>
+            <th scope="row">Look up an invoice or a customer's billing</th>
+            <td><span class="verdict no">Not on the phone</span></td>
+            <td>Deliberate. Billing records are never put on a technician's device, online or off, so a lost phone is not a lost customer ledger.</td>
+          </tr>
+          <tr>
+            <th scope="row">Use the office console or the customer portal</th>
+            <td><span class="verdict no">Online only</span></td>
+            <td>Offline-first is the field app. The dispatch board and the portal are ordinary web apps and need a connection.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout" role="note">
+      <h3>The entrapment row, said plainly</h3>
+      <p>A person in a car is a life-safety call and it does not wait for software. Raise it on the phone if that is what you have, and it is recorded properly. Then get to signal, or call dispatch. No maintenance app should be the only path to a trapped passenger, ours included.</p>
+    </div>
+  </div>
+</section>
+
+<section class="bordered">
+  <div class="wrap">
+    <h2>What happens to the work itself</h2>
+    <p class="lead">Offline is easy to claim. What separates a real offline app from a checkbox is what happens on the way back in. Four answers most vendors do not give.</p>
+
+    <div class="plain">
+      <div>
+        <h3>Two people edited the same ticket. Now what?</h3>
+        <p>The merge runs field by field, not whole record over whole record. If you changed the notes and the office changed the billing flag, both changes survive. Only when you and the office change the same field does the office version stand, and you are shown what was replaced, with your value next to it, so you can put it back if it mattered.</p>
+        <p><b>So no, your edits are not all guaranteed to survive.</b> Some are replaced, on purpose, and you get told which. A vendor who promises nothing is ever lost has either not thought about it or is not telling you.</p>
+      </div>
+      <div>
+        <h3>The server refused one of my writes.</h3>
+        <p>It gets parked somewhere you can see it, with a retry button and a discard button. It is never dropped quietly. That path has its own regression test, because it once had a bug that could lose a row on a failed retry, and we do not want it back.</p>
+      </div>
+      <div>
+        <h3>How much history sits on the phone, and for how long?</h3>
+        <p>There is no date window and no expiry. The phone keeps pulling until it has the whole record it is allowed to see, and it keeps it. The practical limit is the phone's own storage, not a rolling cache.</p>
+        <p>Phones do clear storage for apps they think are abandoned. RiseLynk asks the phone to keep its data, and warns the technician when the phone will not promise to. That is a best effort, not a guarantee, and we would rather say so than let a week-old day disappear quietly.</p>
+      </div>
+      <div>
+        <h3>The phone went down the hoistway before it synced.</h3>
+        <p>Work that never reached the server is gone with the phone. There is no copy of an unsent edit anywhere else, because there is nowhere else for it to be. Wiping a phone is blocked while anything is still waiting to sync, which covers the accident, not the drop.</p>
+        <p>This is a physical limit, not a software gap, and every offline app on earth has it. It is on this page because you should hear it from us rather than find out.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bordered">
+  <div class="wrap">
+    <h2>How this compares</h2>
+    <p class="lead">We are only going to name one competitor, and only from their own documentation, because they are the only vendor in this category who publishes any offline limits at all. Every other comparison we could make comes from review sites or pages we could not read in full, and neither belongs on a page about being straight with you.</p>
+
+    <div class="tablewrap">
+      <table class="cmp">
+        <caption>Compared against ServiceTitan's own published field mobile app documentation, retrieved July 29, 2026. Full source in the note below.</caption>
+        <thead>
+          <tr>
+            <th scope="col">With no signal</th>
+            <th scope="col">RiseLynk</th>
+            <th scope="col">ServiceTitan, per their own help page<sup>3</sup></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">A unit's service history at the unit</th>
+            <td>On the phone, full history, no cutoff</td>
+            <td>Their page states service location history is not available offline</td>
+          </tr>
+          <tr>
+            <th scope="row">Part pricing</th>
+            <td>The parts catalog is on the phone</td>
+            <td>Their page states item pricing is not available offline, because it is calculated live</td>
+          </tr>
+          <tr>
+            <th scope="row">A published list of what does not work</th>
+            <td>This page</td>
+            <td>One sentence, which is one more than anyone else in this trade publishes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <blockquote class="pull">
+      <b>The point is not that they are careless.</b> ServiceTitan is the only vendor in this field who publishes any offline boundary at all, and that is to their credit. The point is that a checkmark on a feature grid and a sync engine that actually holds are different products, and you cannot tell which one you are buying from the grid.
+    </blockquote>
+
+    <div class="footnotes">
+      <h3>Notes</h3>
+      <ol>
+        <li><b>Service history with no cutoff.</b> The field app pulls a unit's record until it has all of it, rather than a recent window. Verified against the shipping code on July 29, 2026.</li>
+        <li><b>First run.</b> This is the one moment the app needs a connection. Set the phone up at the shop, not at the job.</li>
+        <li><b>ServiceTitan source.</b> Their published field mobile app documentation at <a href="https://help.servicetitan.com/docs/field-mobile-app-faq">help.servicetitan.com/docs/field-mobile-app-faq</a>, retrieved July 29, 2026. We quote their own documentation and nothing else. If they change the page, we will change this one.</li>
+        <li><b>Corrections.</b> If a row on this page is wrong, tell us at hello@riselynk.com and we will fix it and date the fix. ServiceTitan is a trademark of its respective owner and is named here only to compare published documentation.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="final bordered">
+  <div class="wrap">
+    <h2>Turn the phone to airplane mode and try it.</h2>
+    <p class="lead" style="margin-left:auto;margin-right:auto">The demo runs on sample data with no signup. Load it, cut the connection, and work a ticket. Android crews can also install the field app from Google Play.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://demo.app.riselynk.com">See it in action</a>
+      <a href="https://play.google.com/store/apps/details?id=com.riselynk.app" rel="noopener noreferrer" target="_blank" style="display:inline-block;line-height:0;padding:12px;text-decoration:none" aria-label="Get RiseLynk field app on Google Play">
+        <img src="/media/get-it-on-google-play.png" alt="Get it on Google Play" width="124" height="48" style="display:block;height:48px;width:auto" />
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="logo" style="font-size:16px"><span class="mk" style="width:24px;height:24px;font-size:13px">R</span> RiseLynk</div>
+    <span class="sp"></span>
+    <span>&copy; <span id="yr">2026</span> Maxwell Industries LLC</span>
+    <a href="../privacy/">Privacy</a>
+    <a href="../cookies/">Cookies</a>
+    <a href="../trust/">Trust</a>
+    <a href="../pricing/">Pricing</a>
+    <a href="https://app.riselynk.com">App</a>
+    <a href="../contact/">Contact</a>
+    <span data-rl-social></span>
+  </div>
+</footer>
+
+<script>
+/* Presentation only, no deps. Nav condenses on scroll; footer year set live. */
+(function () {
+  var nav = document.querySelector('nav');
+  if (nav) {
+    var onScroll = function () {
+      if (window.scrollY > 12) nav.classList.add('scrolled');
+      else nav.classList.remove('scrolled');
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+  var yr = document.getElementById('yr');
+  if (yr) yr.textContent = new Date().getFullYear();
+})();
+</script>
+
+<script src="/social-links.js" defer></script>
+<script src="/cookie-notice.js" defer></script>
+</body>
+</html>

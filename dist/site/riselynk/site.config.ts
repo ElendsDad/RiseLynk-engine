@@ -44,15 +44,31 @@ import type { SiteConfig } from "@/lib/config-schema";
 // comparative claims. Do not add a compare slug, nav link, or href here.
 // =============================================================================
 
+// US states + DC for leadform state selects (parity with apps/landing/signup-modal.js STATES).
+const US_STATES = [
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+  "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+  "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+  "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+  "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC",
+];
+
 export const site: SiteConfig = {
   archetype: "software",
 
   business: {
     name: "RiseLynk",
     tagline:
-      "Offline-first maintenance software for elevator and escalator service companies.",
+      "Maintenance program and records software for elevator and escalator service companies.",
     email: "hello@riselynk.com",
-    socials: [{ label: "Live demo", href: "https://demo.app.riselynk.com" }],
+    // Real social profiles only (sameAs / footer icons). Demo is not a social
+    // profile; it lives in footer.links. URLs from apps/landing/social-links.js
+    // (founder-confirmed 2026-07-18; marketing-feed/brand/social-accounts.md).
+    socials: [
+      { label: "LinkedIn", href: "https://www.linkedin.com/company/riselynk/" },
+      { label: "Instagram", href: "https://www.instagram.com/rise_lynk/" },
+      { label: "Facebook", href: "https://www.facebook.com/people/RiseLynk/61591563653973/" },
+    ],
     // No business.location on purpose: a structured location would flip the
     // @graph org node to LocalBusiness. riselynk.com is a software product
     // site; the org node must stay Organization (Phase-A acceptance).
@@ -63,7 +79,8 @@ export const site: SiteConfig = {
   software: {
     name: "RiseLynk",
     applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
+    // Web PWA plus the Android field app on Google Play (com.riselynk.app, live 2026-07-28).
+    operatingSystem: "Web, Android",
     description:
       "One connected system for the field, the office, and the customer, built to keep working when the signal drops.",
   },
@@ -148,6 +165,20 @@ export const site: SiteConfig = {
     domain: "https://riselynk.com",
     titleSuffix: "",
     ogImage: "/og-image.png",
+    // Founder decision 2026-07-25: allow citation/retrieval AI crawlers; keep
+    // training-corpus crawlers blocked. Engine default is already "split"; set
+    // explicitly so a future engine default flip cannot silently reverse this.
+    // See site-engine/lib/ai-robots.mjs (TRAINING_BOTS vs CITATION_BOTS).
+    aiCrawlers: "split",
+  },
+
+  // Cloudflare Web Analytics (cookieless RUM beacon). Token is founder-supplied
+  // at re-snapshot time; do not invent a value in git. Empty/absent = no beacon
+  // (site-engine/lib/analytics.mjs). CF sets NO cookies, so cookieNotice claims
+  // about cookies stay valid. Privacy/cookie copy that says "no analytics
+  // trackers" must be updated in the same founder pass that sets the token.
+  analytics: {
+    cloudflareToken: "", // founder: paste riselynk.com Web Analytics site token
   },
 
   commerce: {
@@ -181,6 +212,13 @@ export const site: SiteConfig = {
       { label: "Privacy", href: "/privacy" },
       { label: "Cookies", href: "/cookies" },
       { label: "Pitch", href: "/pitch" },
+      // Moved out of business.socials (a demo is not a social profile / sameAs).
+      { label: "Live demo", href: "https://demo.app.riselynk.com" },
+      // Field app only (Play listing = apps/field). Official badge also sits on the home hero.
+      {
+        label: "Google Play",
+        href: "https://play.google.com/store/apps/details?id=com.riselynk.app",
+      },
     ],
     dusk: true,
   },
@@ -513,9 +551,9 @@ Click through the field app, dispatch board, and customer portal on synthetic da
     // ==========================================================================
     {
       slug: "",
-      title: "RiseLynk: elevator service software, offline-first field app",
+      title: "RiseLynk: elevator service software, per-unit maintenance records",
       description:
-        "Run your whole elevator and escalator operation on one platform: an offline-first field app that works with no signal, an office console for dispatch, routes, and billing, and a no-login customer portal. One system for field and office, with nothing re-keyed between them.",
+        "Run your whole elevator and escalator operation on one platform: a starting-point maintenance program and a complete service record for every unit, an office console for dispatch, routes, and billing, and a no-login customer portal. One system for field and office, with nothing re-keyed between them.",
       nav: "Home",
       sections: [
         {
@@ -523,14 +561,19 @@ Click through the field app, dispatch board, and customer portal on synthetic da
           // C-4: the SHIPPED hero kicker, not the spec's stale one.
           subheading: "Elevator service platform",
           heading: "Run every elevator on one system.",
-          body: "The offline-first platform for elevator and escalator service companies. A field app that works with no signal, an office console for dispatch, routes, and billing, and a no-login customer portal, all on one shared record, for any OEM.",
-          // Multi-CTA hero (v0.17.0): the bundle's three calls to action, mapped to the
-          // real hrefs already in the config. Demo is primary; request-access (to the
-          // contact page) and open-the-app are ghost, matching the bundle's button set.
+          body: "The platform for elevator and escalator service companies. Every unit gets a starting-point maintenance program and a complete service history, with an office console for dispatch, routes, and billing and a no-login customer portal on the same shared system, for any OEM. Those records are wanted at the unit, where there is rarely a signal, so the field app keeps working without one.",
+          // Multi-CTA hero (v0.17.0): demo primary; request-access ghost; Google Play ghost
+          // for the Android field app (founder word 2026-07-30). The official Get it on
+          // Google Play badge also sits under the field-phone hero-viz (linked to the same
+          // listing). Browser app remains at app.riselynk.com via request-access / footer.
           cta: [
             { label: "See a live demo", href: "https://demo.app.riselynk.com", variant: "primary" },
             { label: "Request access", href: "/#request-access", variant: "ghost" },
-            { label: "Open the app", href: "https://app.riselynk.com", variant: "ghost" },
+            {
+              label: "Get it on Google Play",
+              href: "https://play.google.com/store/apps/details?id=com.riselynk.app",
+              variant: "ghost",
+            },
           ],
           // Mono proof-chip row under the CTAs (bundle .proofrow, verbatim copy).
           proof: ["Works with zero bars", "OEM-agnostic", "Live sample data, no signup"],
@@ -569,6 +612,8 @@ Click through the field app, dispatch board, and customer portal on synthetic da
 .hero__viz .fone .f2{font-size:11px;color:#93a89d;margin-bottom:9px}
 .hero__viz .fone .fs{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:#06231c;background:#5dcaa5;padding:3px 8px;border-radius:999px}
 .hero__viz .fone .fs i{width:5px;height:5px;border-radius:50%;background:#06231c;opacity:.7;animation:rlVizPulse 2.4s ease-out infinite}
+.hero__viz .play-badge{display:inline-block;margin-top:18px;padding:12px;line-height:0;border-radius:0;text-decoration:none}
+.hero__viz .play-badge img{display:block;height:48px;width:auto}
 @keyframes rlVizPulse{0%{box-shadow:0 0 0 0 rgba(6,35,28,.4)}70%,100%{box-shadow:0 0 0 6px rgba(6,35,28,0)}}
 @media (prefers-reduced-motion:reduce){.hero__viz .fone .fs i{animation:none}}
 </style>
@@ -603,6 +648,9 @@ Click through the field app, dispatch board, and customer portal on synthetic da
     <div class="f2">Machine room, B3</div>
     <span class="fs"><i></i>Synced offline</span>
   </div>
+  <a class="play-badge" href="https://play.google.com/store/apps/details?id=com.riselynk.app" rel="noopener noreferrer" target="_blank">
+    <img src="/media/get-it-on-google-play.png" alt="Get it on Google Play" width="124" height="48" />
+  </a>
 </div>`,
         },
 
@@ -615,8 +663,17 @@ Click through the field app, dispatch board, and customer portal on synthetic da
           body: "From the dispatch board to the customer's inbox: record keeping, scheduling, billing, and sales in a single system that your field and office share.",
           items: [
             {
+              // Flagship: the MCP card spans the full grid row with an accent left edge.
+              // It leads the grid as of 2026-07-29 (founder-approved repositioning): the MCP
+              // is the headline differentiator and offline-first is the foundation, not the
+              // lead. It used to sit eighth, behind the offline card. Do not demote it again.
+              title: "Maintenance Control Programs",
+              body: "RiseLynk assembles a starting-point MCP for each unit from the manufacturer materials you supply, structured around ASME A17.1 / CSA B44 Section 8.6 and the minimum-task floor for that equipment class. Your own qualified personnel review, complete, and adopt it. It is a starting point, not a code-compliance certification.",
+              flagship: true,
+            },
+            {
               title: "Offline-first field app",
-              body: "A mobile PWA for tickets, route work, time, materials, photos, and Category test forms, fully usable with no signal, syncing automatically when it returns.",
+              body: "A mobile PWA for tickets, route work, time, materials, photos, and Category test forms, fully usable with no signal, syncing automatically when it returns. Also on Google Play for Android crews (field app only).",
               // Mini-viz (bundle .mini-sync): the sync-line proof. Self-contained styles
               // scoped under the engine's .card__viz frame, tokens shimmed onto --rl-*.
               viz: `<style>
@@ -670,12 +727,6 @@ Click through the field app, dispatch board, and customer portal on synthetic da
 <div class="mini mini-chat"><span class="bub me">Which units are due for a Cat 1?</span><span class="bub">3 at Harborline Plaza. Want the list?</span></div>`,
             },
             {
-              // Flagship: the MCP card spans the full grid row with an accent left edge.
-              title: "Maintenance Control Programs",
-              body: "RiseLynk assembles a starting-point MCP for each unit from the manufacturer materials you supply, structured around ASME A17.1 / CSA B44 Section 8.6 and the minimum-task floor for that equipment class. Your own qualified personnel review, complete, and adopt it. It is a starting point, not a code-compliance certification.",
-              flagship: true,
-            },
-            {
               // Badge names a planned capability (never-as-shipped). The "(planned)"
               // suffix stays in the title, per the copy discipline already in the config.
               title: "State-record reconciliation (planned)",
@@ -688,6 +739,15 @@ Click through the field app, dispatch board, and customer portal on synthetic da
               badge: "In development",
             },
           ],
+        },
+        {
+          // Google Play field-app CTA (founder word 2026-07-30). Listing is field only;
+          // Play APK offers Try the demo with no sign-in on sample data (catalog 2026-07-29).
+          type: "cta",
+          heading: "Field app on Google Play",
+          body: "Android crews install the offline-first field app from Google Play. Field only: tickets, routes, time, materials, photos, and Category tests. On first open you can try the demo with no sign-in, on sample data. The office console and customer portal stay in the browser.",
+          ctaLabel: "Get it on Google Play",
+          ctaHref: "https://play.google.com/store/apps/details?id=com.riselynk.app",
         },
         {
           // #edges, ported as the answer-first summary block.
@@ -739,8 +799,8 @@ Click through the field app, dispatch board, and customer portal on synthetic da
             { name: "company", label: "Company name", type: "text", required: true, autoComplete: "organization" },
             { name: "name", label: "Your name", type: "text", required: true, autoComplete: "name" },
             { name: "email", label: "Work email", type: "email", required: true, autoComplete: "email" },
-            { name: "phone", label: "Phone", type: "tel", autoComplete: "tel" },
-            { name: "state", label: "State", type: "text" },
+            { name: "phone", label: "Phone", type: "tel", required: true, autoComplete: "tel" },
+            { name: "state", label: "State", type: "select", options: [...US_STATES] },
             { name: "units", label: "Units (elevators / escalators)", type: "number" },
             { name: "seats", label: "Seats (office + field logins)", type: "number" },
             {
@@ -1144,7 +1204,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
         },
         {
           type: "cta",
-          heading: "Built for the trade, offline-first.",
+          heading: "Built for the trade, unit by unit.",
           // B-2 precision fix applied: "live sample data" (was "real sample data").
           body: "RiseLynk keeps your tickets, tests, and routes working in the hoistway, then syncs the moment you have signal. See it on live sample data.",
           ctaLabel: "See a live demo",
@@ -1175,6 +1235,13 @@ Click through the field app, dispatch board, and customer portal on synthetic da
             { q: "How do seats work for field and office?", a: "One flat per-seat rate covers field and office logins. There is no separate mechanic seat and office seat price." },
           ],
         },
+        {
+          type: "cta",
+          heading: "Ready to try it?",
+          body: "Request access, or open the live demo on synthetic data with no signup.",
+          ctaLabel: "Request access",
+          ctaHref: "/#request-access",
+        },
       ],
     },
 
@@ -1182,14 +1249,21 @@ Click through the field app, dispatch board, and customer portal on synthetic da
     {
       slug: "about",
       title: "About RiseLynk: what, where, why, who, and methodology",
-      description: "What RiseLynk is, where it runs, why it exists, who builds it, and the methodology behind an offline-first elevator maintenance platform.",
+      description: "What RiseLynk is, where it runs, why it exists, who builds it, and the methodology behind a per-unit elevator maintenance program and records platform.",
       nav: "About",
       sections: [
         {
           type: "about",
           subheading: "About",
           heading: "What RiseLynk is, and how we build it.",
-          body: "What: offline-first maintenance software for elevator and escalator service companies.\n\nWhere: app.riselynk.com and riselynk.com. Maxwell Industries LLC, Port Orchard, Washington.\n\nWhy: machine rooms drop signal. RiseLynk treats no signal as the normal case.\n\nWho: independent and regional elevator service shops.\n\nMethodology: ship what the trade can verify. AI proposes; a human disposes. MCP drafts are starting points structured around ASME A17.1 / CSA B44 Section 8.6. Not a code-compliance certification.",
+          body: "What: maintenance program and records software for elevator and escalator service companies. Every unit gets a starting-point maintenance program and the service record that hangs off it.\n\nWhere: app.riselynk.com and riselynk.com. Maxwell Industries LLC, Port Orchard, Washington.\n\nWhy: ASME A17.1 / CSA B44 Section 8.6 describes a written maintenance program per unit, kept current and available where the equipment is. Machine rooms drop signal, so RiseLynk treats no signal as the normal case.\n\nWho: independent and regional elevator service shops.\n\nMethodology: ship what the trade can verify. AI proposes; a human disposes. MCP drafts are starting points structured around ASME A17.1 / CSA B44 Section 8.6. Not a code-compliance certification.",
+        },
+        {
+          type: "cta",
+          heading: "Want to see it for yourself?",
+          body: "Request access, or open the live demo on synthetic data with no signup.",
+          ctaLabel: "Request access",
+          ctaHref: "/#request-access",
         },
       ],
     },
@@ -1204,13 +1278,23 @@ Click through the field app, dispatch board, and customer portal on synthetic da
           heading: "The platform, by surface, as it ships today.",
           body: "Field, office, customer portal, and Lynk on one shared record.",
           items: [
-            { title: "Field app", body: "Offline-first routes, tickets, time, materials, photos, Category tests, messaging, and in-flow guides." },
+            {
+              title: "Field app",
+              body: "Offline-first routes, tickets, time, materials, photos, Category tests, messaging, and in-flow guides. On Google Play for Android (field app only).",
+            },
             { title: "Office console", body: "Dispatch, routes, proposals, sales CRM, inventory, invoicing, IUEC-aware payroll, and MCP records." },
             { title: "Customer portal", body: "No-login front-desk QR trouble calls, entrapment fast path, and account-manager sign-in." },
             { title: "Lynk", body: "Plain-English answers from your own records. Agent proposes, office disposes." },
             { title: "CRM and sales", body: "Proposals and sales CRM on the same record as dispatch and billing." },
             { title: "Maintenance Control Programs", body: "Starting-point MCP per unit from your manufacturer materials, structured around Section 8.6. Not a code-compliance certification." },
           ],
+        },
+        {
+          type: "cta",
+          heading: "Ready to run your branch on RiseLynk?",
+          body: "Request access, or open the live demo on synthetic data with no signup.",
+          ctaLabel: "Request access",
+          ctaHref: "/#request-access",
         },
       ],
     },
@@ -1255,6 +1339,13 @@ Click through the field app, dispatch board, and customer portal on synthetic da
           heading: "AI model spend",
           body: "Lynk usage is metered and billed separately, priced at cost.",
         },
+        {
+          type: "cta",
+          heading: "Need a connector scoped for your books?",
+          body: "Request access and we will match the SOW to your shop, not a generic checklist.",
+          ctaLabel: "Request access",
+          ctaHref: "/#request-access",
+        },
       ],
     },
 
@@ -1265,7 +1356,7 @@ Click through the field app, dispatch board, and customer portal on synthetic da
       slug: "contact",
       title: "Contact RiseLynk: elevator maintenance software demo and access",
       description:
-        "Tell us about your elevator service operation and we will set you up on RiseLynk, the offline-first platform for field, office, and customer portal. A real person reads every message. Prefer to look first? The live demo runs on sample data, no signup.",
+        "Tell us about your elevator service operation and we will set you up on RiseLynk, the per-unit maintenance program and records platform for field, office, and customer portal. A real person reads every message. Prefer to look first? The live demo runs on sample data, no signup.",
       nav: "Contact",
       sections: [
         {
@@ -1288,8 +1379,8 @@ Click through the field app, dispatch board, and customer portal on synthetic da
             { name: "company", label: "Company name", type: "text", required: true, autoComplete: "organization" },
             { name: "name", label: "Your name", type: "text", required: true, autoComplete: "name" },
             { name: "email", label: "Work email", type: "email", required: true, autoComplete: "email" },
-            { name: "phone", label: "Phone", type: "tel", autoComplete: "tel" },
-            { name: "state", label: "State", type: "text" },
+            { name: "phone", label: "Phone", type: "tel", required: true, autoComplete: "tel" },
+            { name: "state", label: "State", type: "select", options: [...US_STATES] },
             { name: "units", label: "Units (elevators / escalators)", type: "number" },
             { name: "seats", label: "Seats (office + field logins)", type: "number" },
             { name: "equipment", label: "Equipment types", type: "checkbox-group", full: true, options: ["Traction", "Hydraulic", "Roped hydraulic", "Escalator", "Moving walk", "Other"] },
