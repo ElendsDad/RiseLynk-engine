@@ -586,6 +586,12 @@ Click through the field app, dispatch board, and customer portal on synthetic da
           // an undefined var), and (b) carries the composition's own rules, all scoped under
           // .hero__viz. Because the shims resolve to --rl-* the board themes correctly in light
           // AND dark; the field phone stays a fixed dark surface in both, as in the bundle.
+          // The Play badge is deliberately OUTSIDE .viz-stage (a sibling of it, direct child of
+          // .hero__viz). Do not move it back in: .fone is position:absolute, so it paints over
+          // any in-flow sibling regardless of DOM order and the badge was invisible and
+          // unclickable at every viewport from e758d79 (2026-07-29) until 2026-08-01,
+          // while a curl-and-grep health claim reported the badge as served. Verify this one by
+          // elementFromPoint at the badge centre, never by grepping the HTML.
           heroViz: `<style>
 .hero__viz{--card:var(--rl-card,#fff);--card2:var(--rl-card2,#f0f3ee);--line:var(--rl-line,#e4e7e1);--line2:var(--rl-line2,#d3d9d1);--ink:var(--rl-ink,#0e1f19);--dim:var(--rl-dim,#46554e);--faint:var(--rl-faint,#5f6d66);--green:var(--rl-green,#0c6b52);--bg2:var(--rl-bg2,#f3f5f0);--shadow-lg:var(--rl-shadow-lg,0 24px 56px -18px rgba(14,31,25,.20));--r-md:13px;--r-sm:9px;--st-amber-ink:var(--rl-status-amber-ink,#6b5a2c);--st-amber-bg:var(--rl-status-amber-bg,#f6ecd4);--st-blue-ink:var(--rl-status-blue-ink,#33486f);--st-blue-bg:var(--rl-status-blue-bg,#e5ebf7);--st-green-ink:var(--rl-status-green-ink,#2c5d49);--st-green-bg:var(--rl-status-green-bg,#dff0e7);--st-red-ink:var(--rl-status-red-ink,#6b3333);--st-red-bg:var(--rl-status-red-bg,#f7e3e3)}
 .hero__viz .viz-stage{position:relative}
@@ -612,7 +618,13 @@ Click through the field app, dispatch board, and customer portal on synthetic da
 .hero__viz .fone .f2{font-size:11px;color:#93a89d;margin-bottom:9px}
 .hero__viz .fone .fs{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:#06231c;background:#5dcaa5;padding:3px 8px;border-radius:999px}
 .hero__viz .fone .fs i{width:5px;height:5px;border-radius:50%;background:#06231c;opacity:.7;animation:rlVizPulse 2.4s ease-out infinite}
-.hero__viz .play-badge{display:inline-block;margin-top:18px;padding:12px;line-height:0;border-radius:0;text-decoration:none}
+/* The badge is a SIBLING of .viz-stage, not a child: inside the stage it was in the
+   in-flow paint layer while .fone is position:absolute, so the phone painted over it and
+   elementFromPoint at the badge's centre returned .fone at every viewport. Out of the
+   stage it flows below it, and margin-top clears the phone's 26px bottom overhang
+   (26 + the composition's original 18px gap = 44) so the whole clickable anchor is
+   reachable, not just the part below the phone. */
+.hero__viz .play-badge{display:inline-block;margin-top:44px;padding:12px;line-height:0;border-radius:0;text-decoration:none}
 .hero__viz .play-badge img{display:block;height:48px;width:auto}
 @keyframes rlVizPulse{0%{box-shadow:0 0 0 0 rgba(6,35,28,.4)}70%,100%{box-shadow:0 0 0 6px rgba(6,35,28,0)}}
 @media (prefers-reduced-motion:reduce){.hero__viz .fone .fs i{animation:none}}
@@ -648,10 +660,10 @@ Click through the field app, dispatch board, and customer portal on synthetic da
     <div class="f2">Machine room, B3</div>
     <span class="fs"><i></i>Synced offline</span>
   </div>
-  <a class="play-badge" href="https://play.google.com/store/apps/details?id=com.riselynk.app" rel="noopener noreferrer" target="_blank">
-    <img src="/media/get-it-on-google-play.png" alt="Get it on Google Play" width="124" height="48" />
-  </a>
-</div>`,
+</div>
+<a class="play-badge" href="https://play.google.com/store/apps/details?id=com.riselynk.app" rel="noopener noreferrer" target="_blank">
+  <img src="/media/get-it-on-google-play.png" alt="Get it on Google Play" width="124" height="48" />
+</a>`,
         },
 
         {
